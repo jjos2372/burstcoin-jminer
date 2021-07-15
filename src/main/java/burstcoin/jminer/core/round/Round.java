@@ -46,8 +46,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import pocminer.generate.MiningPlot;
 import signumj.crypto.SignumCrypto;
+import signumj.crypto.plot.impl.MiningPlot;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;

@@ -23,9 +23,10 @@
 package burstcoin.jminer.core.reader.data;
 
 import burstcoin.jminer.core.CoreProperties;
+import signumj.crypto.plot.impl.MiningPlot;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pocminer.generate.MiningPlot;
 
 import java.math.BigInteger;
 import java.nio.file.Path;

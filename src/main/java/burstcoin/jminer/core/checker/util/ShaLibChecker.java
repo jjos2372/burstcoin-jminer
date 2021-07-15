@@ -1,6 +1,6 @@
 package burstcoin.jminer.core.checker.util;
 
-import pocminer.generate.MiningPlot;
+import signumj.crypto.plot.impl.MiningPlot;
 import signumj.util.LibShabal;
 
 public class ShaLibChecker {
