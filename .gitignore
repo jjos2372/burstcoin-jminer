@@ -1,0 +1,7 @@
+/target/
+/jminer.properties
+
+
+/.settings
+.project
+.classpath
