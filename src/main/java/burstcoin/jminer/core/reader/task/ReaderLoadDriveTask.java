@@ -158,7 +158,7 @@ public class ReaderLoadDriveTask
             partBuffer.clear();
             publisher.publishEvent(new ReaderLoadedPartEvent(blockNumber, generationSignature, scoops, chunkPartStartNonce, plotFile.getFilePath().toString()));
 
-            if(!CoreProperties.isUseOpenCl())
+            if(!CoreProperties.isUseOpenCl() && shaLibChecker.getLoadError() == null)
             {
               int lowestNonce = shaLibChecker.findLowest(generationSignature, scoops);
               publisher.publishEvent(new CheckerResultEvent(blockNumber, generationSignature, chunkPartStartNonce, lowestNonce,

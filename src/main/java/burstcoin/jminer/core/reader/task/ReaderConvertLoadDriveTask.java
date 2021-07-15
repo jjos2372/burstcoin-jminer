@@ -90,6 +90,9 @@ public class ReaderConvertLoadDriveTask
     if(!CoreProperties.isUseOpenCl())
     {
       this.shaLibChecker = new ShaLibChecker();
+      if(this.shaLibChecker.getLoadError() != null) {
+        LOG.error("Native CPU library is not available: " + this.shaLibChecker.getLoadError().getMessage());
+      }
     }
   }
 
@@ -177,7 +180,7 @@ public class ReaderConvertLoadDriveTask
             BigInteger chunkPartStartNonce = plotFile.getStartnonce().add(BigInteger.valueOf(chunkNumber * plotFile.getStaggeramt() + partNumber * partSize));
             publisher.publishEvent(new ReaderLoadedPartEvent(blockNumber, generationSignature, scoops1, chunkPartStartNonce, plotFile.getFilePath().toString()));
 
-            if(!CoreProperties.isUseOpenCl())
+            if(!CoreProperties.isUseOpenCl() && shaLibChecker.getLoadError() == null)
             {
               int lowestNonce = shaLibChecker.findLowest(generationSignature, scoops1);
               publisher.publishEvent(new CheckerResultEvent(blockNumber, generationSignature, chunkPartStartNonce, lowestNonce,

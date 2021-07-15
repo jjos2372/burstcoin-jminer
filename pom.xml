@@ -26,6 +26,13 @@
     <saphir-hash.version>3.0.5</saphir-hash.version>
     <bcprov-jdk15on.version>1.61</bcprov-jdk15on.version>
   </properties>
+  
+  <repositories>
+	<repository>
+	    <id>jitpack.io</id>
+	    <url>https://jitpack.io</url>
+	</repository>
+  </repositories>
 
   <dependencies>
 
@@ -37,6 +44,12 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-jetty</artifactId>
+    </dependency>
+    
+    <dependency>
+      <groupId>net.smacke</groupId>
+      <artifactId>jaydio</artifactId>
+      <version>0.1</version>
     </dependency>
 
     <dependency>
@@ -75,7 +88,14 @@
     <dependency>
       <groupId>net.java.dev.jna</groupId>
       <artifactId>jna</artifactId>
+      <version>5.7.0</version>
     </dependency>
+    
+    <dependency>
+	    <groupId>com.github.signum-network</groupId>
+	    <artifactId>signumj</artifactId>
+	    <version>abaddd6ecd</version>
+	</dependency>
 
   </dependencies>
 
