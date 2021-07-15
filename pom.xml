@@ -2,14 +2,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>burstcoin</groupId>
-  <artifactId>burstcoin-jminer</artifactId>
+  <groupId>signum-network</groupId>
+  <artifactId>signum-jminer</artifactId>
   <version>0.6.0-RELEASE</version>
   <packaging>jar</packaging>
 
-  <name>burstcoin-jminer</name>
+  <name>signum-jminer</name>
 
-  <description>Burstcoin (BURST) - GPU assisted PoC-Miner</description>
+  <description>Signum JMiner - GPU/Native CPU Miner</description>
 
   <parent>
     <groupId>org.springframework.boot</groupId>
