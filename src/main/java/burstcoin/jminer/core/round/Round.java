@@ -38,7 +38,6 @@ import burstcoin.jminer.core.round.event.RoundGenSigUpdatedEvent;
 import burstcoin.jminer.core.round.event.RoundSingleResultEvent;
 import burstcoin.jminer.core.round.event.RoundSingleResultSkippedEvent;
 import burstcoin.jminer.core.round.event.RoundStartedEvent;
-import fr.cryptohash.Shabal256;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +46,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import signumj.crypto.SignumCrypto;
+import signumj.crypto.hash.shabal.Shabal256;
 import signumj.crypto.plot.impl.MiningPlot;
 
 import javax.annotation.PostConstruct;

@@ -22,7 +22,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <start-class>burstcoin.jminer.JMinerApplication</start-class>
     <java.version>1.8</java.version>
-    <jocl-blast.version>1.5.0</jocl-blast.version>
+    <jocl-blast.version>1.5.2</jocl-blast.version>
     <saphir-hash.version>3.0.5</saphir-hash.version>
     <bcprov-jdk15on.version>1.61</bcprov-jdk15on.version>
   </properties>
@@ -56,18 +56,6 @@
       <groupId>org.jocl</groupId>
       <artifactId>jocl-blast</artifactId>
       <version>${jocl-blast.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>de.sfuhrm</groupId>
-      <artifactId>saphir-hash-core</artifactId>
-      <version>${saphir-hash.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.bouncycastle</groupId>
-      <artifactId>bcprov-jdk15on</artifactId>
-      <version>${bcprov-jdk15on.version}</version>
     </dependency>
 
     <dependency>
