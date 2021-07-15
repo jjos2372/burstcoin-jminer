@@ -40,7 +40,8 @@ import burstcoin.jminer.core.round.event.RoundSingleResultEvent;
 import burstcoin.jminer.core.round.event.RoundSingleResultSkippedEvent;
 import burstcoin.jminer.core.round.event.RoundStartedEvent;
 import burstcoin.jminer.core.round.event.RoundStoppedEvent;
-import nxt.util.Convert;
+import signumj.crypto.SignumCrypto;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -177,7 +178,7 @@ public class JMinerCommandLine
                  + "capacity '" + event.getCapacity() / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR + " " + G_UNIT + "'");
         String target = event.getTargetDeadline() == Long.MAX_VALUE ? "N/A" : String.valueOf(event.getTargetDeadline());
         LOG.info("      targetDeadline '" + target + "', " + "netDiff '" + String.valueOf(18325193796L / event.getBaseTarget()) + "', "
-                 + "genSig '" + Convert.toHexString(event.getGenerationSignature()).substring(0, 6) + "..'");
+                 + "genSig '" + SignumCrypto.getInstance().toHexString(event.getGenerationSignature()).substring(0, 6) + "..'");
       }
     });
 

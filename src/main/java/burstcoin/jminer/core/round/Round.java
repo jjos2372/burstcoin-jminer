@@ -39,7 +39,6 @@ import burstcoin.jminer.core.round.event.RoundSingleResultEvent;
 import burstcoin.jminer.core.round.event.RoundSingleResultSkippedEvent;
 import burstcoin.jminer.core.round.event.RoundStartedEvent;
 import fr.cryptohash.Shabal256;
-import nxt.util.Convert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +47,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import pocminer.generate.MiningPlot;
+import signumj.crypto.SignumCrypto;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
@@ -140,7 +140,7 @@ public class Round
       boolean generationSignatureChanged = generationSignature != null && !Arrays.equals(event.getGenerationSignature(), generationSignature);
       boolean restart = false;
 
-      boolean alreadyMined = finishedLookup.contains(Convert.toHexString(event.getGenerationSignature()));
+      boolean alreadyMined = finishedLookup.contains(SignumCrypto.getInstance().toHexString(event.getGenerationSignature()));
       if(alreadyMined && CoreProperties.isUpdateMiningInfo())
       {
         publisher.publishEvent(new RoundGenSigAlreadyMinedEvent(event.getBlockNumber(), event.getGenerationSignature()));
@@ -349,7 +349,7 @@ public class Round
     finishedBlockNumber = blockNumber;
 
     // remember finished genSig, to prevent mining it again
-    finishedLookup.add(Convert.toHexString(generationSignature));
+    finishedLookup.add(SignumCrypto.getInstance().toHexString(generationSignature));
 
     long elapsedRoundTime = new Date().getTime() - roundStartDate.getTime();
     int networkQuality = getNetworkQuality();

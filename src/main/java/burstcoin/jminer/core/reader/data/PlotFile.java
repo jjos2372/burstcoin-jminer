@@ -23,7 +23,6 @@
 package burstcoin.jminer.core.reader.data;
 
 import burstcoin.jminer.core.CoreProperties;
-import nxt.util.Convert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pocminer.generate.MiningPlot;
@@ -61,7 +60,7 @@ public class PlotFile
     this.chunkPartNonces = chunkPartNonces;
     this.filename = getFilename(filePath);
     String[] parts = filename.split("_");
-    this.address = Convert.parseUnsignedLong(parts[0]);
+    this.address = Long.parseUnsignedLong(parts[0]);
     this.startnonce = new BigInteger(parts[1]);
     this.plots = Long.valueOf(parts[2]);
 

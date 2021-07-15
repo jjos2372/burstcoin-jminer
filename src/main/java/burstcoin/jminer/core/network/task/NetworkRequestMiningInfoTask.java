@@ -27,7 +27,8 @@ import burstcoin.jminer.core.network.event.NetworkQualityChangeEvent;
 import burstcoin.jminer.core.network.event.NetworkStateChangeEvent;
 import burstcoin.jminer.core.network.model.MiningInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import nxt.util.Convert;
+import signumj.crypto.SignumCrypto;
+
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.slf4j.Logger;
@@ -108,13 +109,13 @@ public class NetworkRequestMiningInfoTask
       if(result != null)
       {
         success = true;
-        long newBlockNumber = Convert.parseUnsignedLong(result.getHeight());
-        byte[] newGenerationSignature = Convert.parseHexString(result.getGenerationSignature());
+        long newBlockNumber = Long.parseUnsignedLong(result.getHeight());
+        byte[] newGenerationSignature = SignumCrypto.getInstance().parseHexString(result.getGenerationSignature());
 
         // higher block 'or' same block with other generationSignature
         if(!Arrays.equals(newGenerationSignature, generationSignature))
         {
-          long baseTarget = Convert.parseUnsignedLong(result.getBaseTarget());
+          long baseTarget = Long.parseUnsignedLong(result.getBaseTarget());
           long targetDeadline = getTargetDeadline(result.getTargetDeadline(), baseTarget);
           publisher.publishEvent(new NetworkStateChangeEvent(newBlockNumber, baseTarget, newGenerationSignature, targetDeadline));
         }

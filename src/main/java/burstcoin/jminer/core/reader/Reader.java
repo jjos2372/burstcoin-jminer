@@ -38,8 +38,8 @@ import burstcoin.jminer.core.reader.event.ReaderProgressChangedEvent;
 import burstcoin.jminer.core.reader.task.ReaderConvertLoadDriveTask;
 import burstcoin.jminer.core.reader.task.ReaderLoadDriveTask;
 import burstcoin.jminer.core.round.event.RoundStoppedEvent;
-import nxt.crypto.Crypto;
-import nxt.util.Convert;
+import signumj.crypto.SignumCrypto;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,10 +121,7 @@ public class Reader
     else
     {
       // calculate numericAccountId
-      byte[] publicKey = Crypto.getPublicKey(CoreProperties.getPassPhrase());
-      byte[] publicKeyHash = Crypto.sha256().digest(publicKey);
-      long accountId = Convert.fullHashToId(publicKeyHash);
-      numericAccountId = Convert.toUnsignedLong(accountId);
+      numericAccountId = SignumCrypto.getInstance().getAddressFromPassphrase(CoreProperties.getPassPhrase()).getID();
     }
 
     if(!StringUtils.isEmpty(numericAccountId))
