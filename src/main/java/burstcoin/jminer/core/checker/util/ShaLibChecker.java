@@ -5,9 +5,6 @@ import signumj.util.LibShabal;
 
 public class ShaLibChecker {
 
-    public ShaLibChecker() {
-    }
-    
     public Throwable getLoadError() {
       return LibShabal.LOAD_ERROR;
     }

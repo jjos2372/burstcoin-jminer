@@ -23,8 +23,6 @@
     <start-class>burstcoin.jminer.JMinerApplication</start-class>
     <java.version>1.8</java.version>
     <jocl-blast.version>1.5.2</jocl-blast.version>
-    <saphir-hash.version>3.0.5</saphir-hash.version>
-    <bcprov-jdk15on.version>1.61</bcprov-jdk15on.version>
   </properties>
   
   <repositories>
@@ -71,12 +69,6 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>net.java.dev.jna</groupId>
-      <artifactId>jna</artifactId>
-      <version>5.7.0</version>
     </dependency>
     
     <dependency>
