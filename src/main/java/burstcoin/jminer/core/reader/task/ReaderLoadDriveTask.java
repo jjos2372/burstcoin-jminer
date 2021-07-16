@@ -23,10 +23,13 @@
 package burstcoin.jminer.core.reader.task;
 
 
+import java.io.Closeable;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.nio.channels.ClosedByInterruptException;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
@@ -37,6 +40,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import com.sun.jna.Platform;
 
 import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.checker.event.CheckerResultEvent;
@@ -124,10 +129,53 @@ public class ReaderLoadDriveTask
     }
   }
 
+  /**
+   * A wrapper class optimized for each system.
+   * 
+   * On Linux the page cache keeps being filled by the plots recently read,
+   * so we use direct io in this case.
+   * 
+   * TODO: add optimized support for other platforms.
+   *
+   */
+  static class RandomAccessFileWrapper implements Closeable {
+    DirectRandomAccessFile dra;
+    RandomAccessFile ra;
+    
+    public RandomAccessFileWrapper(Path path) throws IOException {
+      if(Platform.isLinux())
+        dra = new DirectRandomAccessFile(path.toFile(), "r");
+      else
+        ra = new RandomAccessFile(path.toFile(), "r");
+    }
+
+    @Override
+    public void close() throws IOException {
+      if(dra != null)
+        dra.close();
+      if(ra != null)
+        ra.close();
+    }
+
+    public void seek(long l) throws IOException {
+      if(dra!=null)
+        dra.seek(l);
+      if(ra!=null)
+        ra.seek(l);
+    }
+
+    public void read(byte[] partBuffer, int i, int length) throws IOException {
+      if(dra!=null)
+        dra.read(partBuffer, i, length);
+      if(ra!=null)
+        ra.read(partBuffer, i, length);      
+    }
+  };
+  
   private boolean load(PlotFile plotFile)
   {
-    try (DirectRandomAccessFile sbc = new DirectRandomAccessFile(plotFile.getFilePath().toFile(), "r"))
-    {
+    try (RandomAccessFileWrapper sbc = new RandomAccessFileWrapper(plotFile.getFilePath())) {
+      
       long currentScoopPosition = scoopNumber * plotFile.getStaggeramt() * MiningPlot.SCOOP_SIZE;
       
       long partSize = plotFile.getStaggeramt() / plotFile.getNumberOfParts();
