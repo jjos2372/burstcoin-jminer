@@ -23,7 +23,6 @@
 package burstcoin.jminer.core.network.model;
 
 public class Base
-//  implements Serializable
 {
   private long requestProcessingTime;
 
