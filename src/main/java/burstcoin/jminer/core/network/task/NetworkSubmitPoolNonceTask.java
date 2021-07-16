@@ -57,7 +57,7 @@ public class NetworkSubmitPoolNonceTask
   implements Runnable
 {
   private static final Logger LOG = LoggerFactory.getLogger(NetworkSubmitPoolNonceTask.class);
-  private static final String HEADER_MINER_NAME = "burstcoin-jminer-0.6.0";
+  private static final String HEADER_MINER_NAME = "signum-jminer-0.6.0";
 
   private final ApplicationEventPublisher publisher;
   private final HttpClient httpClient;
@@ -105,6 +105,7 @@ public class NetworkSubmitPoolNonceTask
       long gb = totalCapacity / 1000 / 1000 / 1000;
 
       ContentResponse response = httpClient.POST(CoreProperties.getPoolServer() + "/burst")
+        .agent(HEADER_MINER_NAME)
         .param("requestType", "submitNonce")
         .param("accountId", CoreProperties.getNumericAccountId())
         .param("nonce", nonce.toString())
