@@ -25,8 +25,6 @@ package burstcoin.jminer.core;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -40,8 +38,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @ComponentScan(basePackages = {"burstcoin.jminer.core"})
 public class CoreConfig
 {
-  private static final Logger LOG = LoggerFactory.getLogger(CoreConfig.class);
-
   @Bean(name = "readerPool")
   public ThreadPoolTaskExecutor readerPool()
   {
