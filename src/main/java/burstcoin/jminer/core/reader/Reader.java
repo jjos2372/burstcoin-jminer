@@ -35,7 +35,6 @@ import burstcoin.jminer.core.reader.data.PocVersion;
 import burstcoin.jminer.core.reader.event.ReaderCorruptFileEvent;
 import burstcoin.jminer.core.reader.event.ReaderLoadedPartEvent;
 import burstcoin.jminer.core.reader.event.ReaderProgressChangedEvent;
-import burstcoin.jminer.core.reader.task.ReaderConvertLoadDriveTask;
 import burstcoin.jminer.core.reader.task.ReaderLoadDriveTask;
 import burstcoin.jminer.core.round.event.RoundStoppedEvent;
 import signumj.crypto.SignumCrypto;
@@ -211,20 +210,14 @@ public class Reader
         LOG.warn("Skipped '" + plotDrive.getDirectory()
                  + "', different POC versions on one drive is not supported! (Workaround: put them in different directories and add them to 'plotFilePaths')");
       }
-      else
-      {
-        if(isCompatibleWithCurrentPoc(drivePocVersion))
-        {
-          ReaderLoadDriveTask readerLoadDriveTask = context.getBean(ReaderLoadDriveTask.class);
-          readerLoadDriveTask.init(scoopNumber, blockNumber, generationSignature, plotDrive);
-          readerPool.execute(readerLoadDriveTask);
-        }
-        else
-        {
-          ReaderConvertLoadDriveTask readerConvertLoadDriveTask = context.getBean(ReaderConvertLoadDriveTask.class);
-          readerConvertLoadDriveTask.init(scoopNumber, blockNumber, generationSignature, plotDrive);
-          readerPool.execute(readerConvertLoadDriveTask);
-        }
+      else if (drivePocVersion != PocVersion.POC_2){
+        LOG.warn("Skipped '" + plotDrive.getDirectory()
+        + "' due to incompatible plot files");        
+      }
+      else {
+        ReaderLoadDriveTask readerLoadDriveTask = context.getBean(ReaderLoadDriveTask.class);
+        readerLoadDriveTask.init(scoopNumber, blockNumber, generationSignature, plotDrive);
+        readerPool.execute(readerLoadDriveTask);
       }
     }
   }

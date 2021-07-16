@@ -62,6 +62,9 @@ public class PlotDrive
       else if(plotFile.getStaggeramt() % plotFile.getNumberOfParts() != 0) {
         LOG.error("could not calculate valid numberOfParts: " + plotFile.getFilePath());
       }
+      else if(plotFile.getPocVersion() != PocVersion.POC_2) {
+        LOG.error("incompatible plot format: " + plotFile.getFilePath());        
+      }
       else {
         plotFiles.add(plotFile);
       }
