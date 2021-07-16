@@ -25,6 +25,7 @@ package burstcoin.jminer.core.reader.event;
 
 import org.springframework.context.ApplicationEvent;
 
+@SuppressWarnings("serial")
 public class ReaderDriveFinishEvent
   extends ApplicationEvent
 {

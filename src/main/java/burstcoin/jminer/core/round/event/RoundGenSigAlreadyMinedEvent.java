@@ -25,6 +25,7 @@ package burstcoin.jminer.core.round.event;
 import org.springframework.context.ApplicationEvent;
 
 
+@SuppressWarnings("serial")
 public class RoundGenSigAlreadyMinedEvent
   extends ApplicationEvent
 {

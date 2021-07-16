@@ -189,8 +189,6 @@ public class Round
 
         // ui event
         publisher.publishEvent(new RoundStartedEvent(restart, blockNumber, scoopNumber, plots.getSize(), targetDeadline, baseTarget, generationSignature));
-
-        network.checkLastWinner(blockNumber);
       }
     }
   }

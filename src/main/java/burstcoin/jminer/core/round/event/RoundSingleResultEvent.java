@@ -29,6 +29,7 @@ import java.math.BigInteger;
 /**
  * fired on new best deadline below targetDeadline (not confirmed)
  */
+@SuppressWarnings("serial")
 public class RoundSingleResultEvent
   extends ApplicationEvent
 {

@@ -27,6 +27,7 @@ import org.springframework.context.ApplicationEvent;
 /**
  * The type Round finished event.
  */
+@SuppressWarnings("serial")
 public class RoundFinishedEvent
   extends ApplicationEvent
 {

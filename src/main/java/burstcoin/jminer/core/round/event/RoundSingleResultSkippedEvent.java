@@ -29,6 +29,7 @@ import java.math.BigInteger;
 /**
  * fired if deadline is skipped cause of targetDeadline
  */
+@SuppressWarnings("serial")
 public class RoundSingleResultSkippedEvent
   extends ApplicationEvent
 {

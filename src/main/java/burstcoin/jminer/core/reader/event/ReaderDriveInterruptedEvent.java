@@ -27,6 +27,7 @@ import org.springframework.context.ApplicationEvent;
 /**
  * fired if read is interrupted on shutdown threadPool
  */
+@SuppressWarnings("serial")
 public class ReaderDriveInterruptedEvent
   extends ApplicationEvent
 {

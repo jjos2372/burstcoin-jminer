@@ -24,7 +24,6 @@ package burstcoin.jminer;
 
 import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.network.Network;
-import burstcoin.jminer.core.network.event.NetworkLastWinnerEvent;
 import burstcoin.jminer.core.network.event.NetworkPoolInfoEvent;
 import burstcoin.jminer.core.network.event.NetworkResultConfirmedEvent;
 import burstcoin.jminer.core.network.event.NetworkResultErrorEvent;
@@ -94,7 +93,6 @@ public class JMinerCommandLine
 
     // start mining
     Network network = context.getBean(Network.class);
-    network.checkPoolInfo();
     network.startMining();
   }
 
@@ -145,22 +143,6 @@ public class JMinerCommandLine
                  + "time '" + s + "s " + ms + "ms'");
 
         showNetworkQualityInfo(event.getNetworkQuality());
-      }
-    });
-
-    context.addApplicationListener(new ApplicationListener<NetworkLastWinnerEvent>()
-    {
-      @Override
-      public void onApplicationEvent(NetworkLastWinnerEvent event)
-      {
-        if(Reader.blockNumber.get() - 1 == event.getLastBlockNumber())
-        {
-          LOG.info("      winner block '" + event.getLastBlockNumber() + "', '" + event.getWinner() + "'");
-        }
-        else
-        {
-          LOG.error("Error: NetworkLastWinnerEvent for block: " + event.getLastBlockNumber() + " is outdated!");
-        }
       }
     });
 

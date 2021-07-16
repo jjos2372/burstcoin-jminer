@@ -22,15 +22,14 @@
 
 package burstcoin.jminer.core.network;
 
-import burstcoin.jminer.core.CoreProperties;
-import burstcoin.jminer.core.network.event.NetworkStateChangeEvent;
-import burstcoin.jminer.core.network.task.NetworkRequestLastWinnerTask;
-import burstcoin.jminer.core.network.task.NetworkRequestMiningInfoTask;
-import burstcoin.jminer.core.network.task.NetworkRequestPoolInfoTask;
-import burstcoin.jminer.core.network.task.NetworkSubmitPoolNonceTask;
-import burstcoin.jminer.core.network.task.NetworkSubmitSoloNonceTask;
-import burstcoin.jminer.core.reader.Reader;
-import burstcoin.jminer.core.reader.data.Plots;
+import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import javax.annotation.PostConstruct;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,12 +41,13 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.PostConstruct;
-import java.math.BigInteger;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.util.Timer;
-import java.util.TimerTask;
+import burstcoin.jminer.core.CoreProperties;
+import burstcoin.jminer.core.network.event.NetworkStateChangeEvent;
+import burstcoin.jminer.core.network.task.NetworkRequestMiningInfoTask;
+import burstcoin.jminer.core.network.task.NetworkSubmitPoolNonceTask;
+import burstcoin.jminer.core.network.task.NetworkSubmitSoloNonceTask;
+import burstcoin.jminer.core.reader.Reader;
+import burstcoin.jminer.core.reader.data.Plots;
 
 @Component
 @Scope("singleton")
@@ -130,26 +130,6 @@ public class Network
       NetworkRequestMiningInfoTask networkRequestMiningInfoTask = context.getBean(NetworkRequestMiningInfoTask.class);
       networkRequestMiningInfoTask.init(server, blockNumber, generationSignature, plots.getSize());
       networkPool.execute(networkRequestMiningInfoTask);
-    }
-  }
-
-  public void checkLastWinner(long blockNumber)
-  {
-    // find winner of lastBlock on new round, if server available
-    String server = !CoreProperties.isPoolMining() ? CoreProperties.getSoloServer() : CoreProperties.getWalletServer();
-    if(!StringUtils.isEmpty(server))
-    {
-      NetworkRequestLastWinnerTask networkRequestLastWinnerTask = context.getBean(NetworkRequestLastWinnerTask.class);
-      networkRequestLastWinnerTask.init(server, blockNumber);
-      networkPool.execute(networkRequestLastWinnerTask);
-    }
-  }
-
-  public void checkPoolInfo()
-  {
-    if(CoreProperties.isPoolMining() && CoreProperties.getWalletServer() != null)
-    {
-      networkPool.execute(context.getBean(NetworkRequestPoolInfoTask.class));
     }
   }
 

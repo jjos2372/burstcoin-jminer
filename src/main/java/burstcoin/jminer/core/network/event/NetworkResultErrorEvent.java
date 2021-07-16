@@ -29,6 +29,7 @@ import java.math.BigInteger;
 /**
  * fired if server response deadline does not match calculated deadline.
  */
+@SuppressWarnings("serial")
 public class NetworkResultErrorEvent
   extends ApplicationEvent
 {

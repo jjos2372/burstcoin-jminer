@@ -25,6 +25,7 @@ package burstcoin.jminer.core.network.event;
 import org.springframework.context.ApplicationEvent;
 
 
+@SuppressWarnings("serial")
 public class NetworkPoolInfoEvent
   extends ApplicationEvent
 {

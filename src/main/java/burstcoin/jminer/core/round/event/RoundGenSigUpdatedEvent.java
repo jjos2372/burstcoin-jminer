@@ -25,6 +25,7 @@ package burstcoin.jminer.core.round.event;
 import org.springframework.context.ApplicationEvent;
 
 // fired if generationSignature for current block has changed
+@SuppressWarnings("serial")
 public class RoundGenSigUpdatedEvent
   extends ApplicationEvent
 {

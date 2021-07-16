@@ -22,10 +22,8 @@
 
 package burstcoin.jminer.core.network.model;
 
-import java.io.Serializable;
-
 public class Base
-  implements Serializable
+//  implements Serializable
 {
   private long requestProcessingTime;
 

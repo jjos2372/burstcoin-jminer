@@ -28,6 +28,7 @@ import org.springframework.context.ApplicationEvent;
  * The type Network state change event.
  */
 /* fired if a new block has started */
+@SuppressWarnings("serial")
 public class NetworkStateChangeEvent
   extends ApplicationEvent
 {

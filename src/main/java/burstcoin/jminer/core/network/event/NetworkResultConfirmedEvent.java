@@ -30,6 +30,7 @@ import java.math.BigInteger;
 /**
  * fired if calculatedDeadline was confirmed by server
  */
+@SuppressWarnings("serial")
 public class NetworkResultConfirmedEvent
   extends ApplicationEvent
 {

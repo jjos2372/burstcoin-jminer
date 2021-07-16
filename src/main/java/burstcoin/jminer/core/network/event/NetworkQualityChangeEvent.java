@@ -25,6 +25,7 @@ package burstcoin.jminer.core.network.event;
 import java.io.Serializable;
 
 /* just for statistics of network quality, information on succeeded or not succeeded requests*/
+@SuppressWarnings("serial")
 public class NetworkQualityChangeEvent
   implements Serializable
 {

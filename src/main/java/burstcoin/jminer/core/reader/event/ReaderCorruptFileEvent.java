@@ -28,6 +28,7 @@ import org.springframework.context.ApplicationEvent;
 /**
  * fired on NetworkResultErrorEvent, if a calculated deadline was not matching server result, to deliver affected plot file
  */
+@SuppressWarnings("serial")
 public class ReaderCorruptFileEvent
   extends ApplicationEvent
 {

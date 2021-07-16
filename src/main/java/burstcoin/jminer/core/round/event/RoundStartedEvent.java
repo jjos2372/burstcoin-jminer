@@ -28,6 +28,7 @@ import org.springframework.context.ApplicationEvent;
 /**
  * fired after mining started
  */
+@SuppressWarnings("serial")
 public class RoundStartedEvent
   extends ApplicationEvent
 {

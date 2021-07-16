@@ -28,6 +28,7 @@ import org.springframework.context.ApplicationEvent;
 /**
  * The type Reader progress changed event.
  */
+@SuppressWarnings("serial")
 public class ReaderProgressChangedEvent
   extends ApplicationEvent
 {

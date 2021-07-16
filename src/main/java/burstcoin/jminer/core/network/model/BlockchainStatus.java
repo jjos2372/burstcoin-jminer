@@ -22,13 +22,10 @@
 
 package burstcoin.jminer.core.network.model;
 
-import java.io.Serializable;
-
 /**
  * The type Blockchain status.
  */
 public class BlockchainStatus
-  implements Serializable
 {
   private String lastBlock;
   private String application;
