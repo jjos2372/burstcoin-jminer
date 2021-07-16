@@ -26,6 +26,8 @@ package burstcoin.jminer.core.reader.data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import signumj.crypto.plot.impl.MiningPlot;
+
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -51,11 +53,17 @@ public class PlotDrive
     for(Path path : plotFilePaths)
     {
       PlotFile plotFile = new PlotFile(path, chunkPartNonces);
-      plotFiles.add(plotFile);
-
-      if(plotFile.getStaggeramt() % plotFile.getNumberOfParts() != 0)
-      {
+      
+      long expectedFileSize = MiningPlot.SCOOP_SIZE * MiningPlot.SCOOPS_PER_PLOT * plotFile.getPlots();
+      
+      if(expectedFileSize != plotFile.getFilePath().toFile().length()) {
+        LOG.error("invalid file size for plot : " + plotFile.getFilePath());        
+      }
+      else if(plotFile.getStaggeramt() % plotFile.getNumberOfParts() != 0) {
         LOG.error("could not calculate valid numberOfParts: " + plotFile.getFilePath());
+      }
+      else {
+        plotFiles.add(plotFile);
       }
     }
   }

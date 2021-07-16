@@ -23,6 +23,21 @@
 package burstcoin.jminer.core.reader.task;
 
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.channels.ClosedByInterruptException;
+import java.nio.file.NoSuchFileException;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Iterator;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
 import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.checker.event.CheckerResultEvent;
 import burstcoin.jminer.core.checker.util.ShaLibChecker;
@@ -32,27 +47,8 @@ import burstcoin.jminer.core.reader.data.PlotFile;
 import burstcoin.jminer.core.reader.event.ReaderDriveFinishEvent;
 import burstcoin.jminer.core.reader.event.ReaderDriveInterruptedEvent;
 import burstcoin.jminer.core.reader.event.ReaderLoadedPartEvent;
+import net.smacke.jaydio.DirectRandomAccessFile;
 import signumj.crypto.plot.impl.MiningPlot;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.nio.channels.ClosedByInterruptException;
-import java.nio.channels.SeekableByteChannel;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.Iterator;
 
 
 /**
@@ -130,33 +126,32 @@ public class ReaderLoadDriveTask
 
   private boolean load(PlotFile plotFile)
   {
-    try (SeekableByteChannel sbc = Files.newByteChannel(plotFile.getFilePath(), EnumSet.of(StandardOpenOption.READ)))
+    try (DirectRandomAccessFile sbc = new DirectRandomAccessFile(plotFile.getFilePath().toFile(), "r"))
     {
       long currentScoopPosition = scoopNumber * plotFile.getStaggeramt() * MiningPlot.SCOOP_SIZE;
-
+      
       long partSize = plotFile.getStaggeramt() / plotFile.getNumberOfParts();
-      ByteBuffer partBuffer = ByteBuffer.allocate((int) (partSize * MiningPlot.SCOOP_SIZE));
+      byte []partBuffer = new byte[(int) (partSize * MiningPlot.SCOOP_SIZE)];
       // optimized plotFiles only have one chunk!
       for(int chunkNumber = 0; chunkNumber < plotFile.getNumberOfChunks(); chunkNumber++)
       {
         long currentChunkPosition = chunkNumber * plotFile.getStaggeramt() * MiningPlot.PLOT_SIZE;
-        sbc.position(currentScoopPosition + currentChunkPosition);
+        sbc.seek(currentScoopPosition + currentChunkPosition);
+                
         for(int partNumber = 0; partNumber < plotFile.getNumberOfParts(); partNumber++)
         {
-          sbc.read(partBuffer);
+          sbc.read(partBuffer, 0, partBuffer.length);
 
           if(Reader.blockNumber.get() != blockNumber || !Arrays.equals(Reader.generationSignature, generationSignature))
           {
             LOG.trace("loadDriveThread stopped!");
-            partBuffer.clear();
             sbc.close();
             return true;
           }
           else
           {
             BigInteger chunkPartStartNonce = plotFile.getStartnonce().add(BigInteger.valueOf(chunkNumber * plotFile.getStaggeramt() + partNumber * partSize));
-            final byte[] scoops = partBuffer.array();
-            partBuffer.clear();
+            final byte[] scoops = partBuffer;
             publisher.publishEvent(new ReaderLoadedPartEvent(blockNumber, generationSignature, scoops, chunkPartStartNonce, plotFile.getFilePath().toString()));
 
             if(!CoreProperties.isUseOpenCl() && shaLibChecker.getLoadError() == null)
