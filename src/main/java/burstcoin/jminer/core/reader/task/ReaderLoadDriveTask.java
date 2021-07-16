@@ -71,7 +71,7 @@ public class ReaderLoadDriveTask
 
   private byte[] generationSignature;
   private PlotDrive plotDrive;
-  private int scoopNumber;
+  private int[] scoopNumber;
   private long blockNumber;
   private boolean showDriveInfo;
 
@@ -81,7 +81,7 @@ public class ReaderLoadDriveTask
     this.publisher = publisher;
   }
 
-  public void init(int scoopNumber, long blockNumber, byte[] generationSignature, PlotDrive plotDrive)
+  public void init(int[] scoopNumber, long blockNumber, byte[] generationSignature, PlotDrive plotDrive)
   {
     this.scoopNumber = scoopNumber;
     this.blockNumber = blockNumber;
@@ -176,7 +176,7 @@ public class ReaderLoadDriveTask
   {
     try (RandomAccessFileWrapper sbc = new RandomAccessFileWrapper(plotFile.getFilePath())) {
       
-      long currentScoopPosition = scoopNumber * plotFile.getStaggeramt() * MiningPlot.SCOOP_SIZE;
+      long currentScoopPosition = scoopNumber[0] * plotFile.getStaggeramt() * MiningPlot.SCOOP_SIZE;
       
       long partSize = plotFile.getStaggeramt() / plotFile.getNumberOfParts();
       byte []partBuffer = new byte[(int) (partSize * MiningPlot.SCOOP_SIZE)];

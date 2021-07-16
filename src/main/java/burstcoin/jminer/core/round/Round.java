@@ -53,7 +53,6 @@ import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -184,7 +183,9 @@ public class Round
         }
 
         // start reader
-        int scoopNumber = calcScoopNumber(event.getBlockNumber(), event.getGenerationSignature());
+        int scoopNumber[] = new int[1];
+        scoopNumber[0] = SignumCrypto.getInstance().calculateScoop(event.getGenerationSignature(), event.getBlockNumber());
+        
         reader.read(previousBlockNumber, blockNumber, generationSignature, scoopNumber, lastBestCommittedDeadline, networkQuality);
 
         // ui event
@@ -403,24 +404,6 @@ public class Round
   {
     return blockNumber == currentBlockNumber
            && Arrays.equals(generationSignature, currentGenerationSignature);
-  }
-
-  private static int calcScoopNumber(long blockNumber, byte[] generationSignature)
-  {
-    if(blockNumber > 0 && generationSignature != null)
-    {
-      ByteBuffer buf = ByteBuffer.allocate(32 + 8);
-      buf.put(generationSignature);
-      buf.putLong(blockNumber);
-
-      // generate new scoop number
-      Shabal256 md = new Shabal256();
-      md.update(buf.array());
-
-      BigInteger hashnum = new BigInteger(1, md.digest());
-      return hashnum.mod(BigInteger.valueOf(MiningPlot.SCOOPS_PER_PLOT)).intValue();
-    }
-    return 0;
   }
 
   private static BigInteger calculateResult(byte[] scoops, byte[] generationSignature, int nonce)

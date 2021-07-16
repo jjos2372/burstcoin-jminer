@@ -135,7 +135,7 @@ public class Reader
   }
 
   /* starts reader (once per block) */
-  public void read(long previousBlockNumber, long blockNumber, byte[] generationSignature, int scoopNumber, long lastBestCommittedDeadline, int networkQuality)
+  public void read(long previousBlockNumber, long blockNumber, byte[] generationSignature, int[] scoopNumber, long lastBestCommittedDeadline, int networkQuality)
   {
     Reader.blockNumber.set(blockNumber);
     Reader.generationSignature = generationSignature;

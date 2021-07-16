@@ -32,7 +32,7 @@ import org.springframework.context.ApplicationEvent;
 public class RoundStartedEvent
   extends ApplicationEvent
 {
-  private long scoopNumber;
+  private int[] scoopNumber;
   private long capacity;
   private long targetDeadline;
   private long baseTarget;
@@ -49,7 +49,7 @@ public class RoundStartedEvent
    * @param baseTarget the base target
    * @param generationSignature
    */
-  public RoundStartedEvent(boolean restart, long blockNumber, long scoopNumber, long capacity, long targetDeadline, long baseTarget, byte[] generationSignature)
+  public RoundStartedEvent(boolean restart, long blockNumber, int[] scoopNumber, long capacity, long targetDeadline, long baseTarget, byte[] generationSignature)
   {
     super(blockNumber);
 
@@ -97,7 +97,7 @@ public class RoundStartedEvent
    *
    * @return the scoop number
    */
-  public long getScoopNumber()
+  public int[] getScoopNumber()
   {
     return scoopNumber;
   }
