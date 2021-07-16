@@ -24,7 +24,6 @@ package burstcoin.jminer;
 
 import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.network.Network;
-import burstcoin.jminer.core.network.event.NetworkPoolInfoEvent;
 import burstcoin.jminer.core.network.event.NetworkResultConfirmedEvent;
 import burstcoin.jminer.core.network.event.NetworkResultErrorEvent;
 import burstcoin.jminer.core.reader.Reader;
@@ -318,20 +317,6 @@ public class JMinerCommandLine
       }
     });
 
-    context.addApplicationListener(new ApplicationListener<NetworkPoolInfoEvent>()
-    {
-      @Override
-      public void onApplicationEvent(NetworkPoolInfoEvent event)
-      {
-        String value = event.getPoolBalanceNQT();
-        String amount = value.length() > 8 ? value.substring(0, value.length() - 8) : value;
-        value = event.getPoolForgedBalanceNQT();
-        String totalForget = value.length() > 8 ? value.substring(0, value.length() - 8) : value;
-        LOG.info("-------------------------------------------------------");
-        LOG.info("POOL account '" + event.getPoolAccountRS() + "', assigned miners '" + event.getPoolNumberOfMiningAccounts() + "'");
-        LOG.info("     balance '" + amount + " BURST', total mined '" + totalForget + " BURST'");
-      }
-    });
   }
 
   private void showNetworkQualityInfo(int networkQuality)
