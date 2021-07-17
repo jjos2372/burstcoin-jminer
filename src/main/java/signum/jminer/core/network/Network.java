@@ -133,7 +133,7 @@ public class Network
     }
   }
 
-  public void commitResult(long blockNumber, long calculatedDeadline, BigInteger nonce, BigInteger chunkPartStartNonce, long totalCapacity,
+  public void submitResult(long blockNumber, long calculatedDeadline, BigInteger nonce, BigInteger chunkPartStartNonce, long totalCapacity,
                            BigInteger result, String plotFilePath)
   {
     if(CoreProperties.isPoolMining())

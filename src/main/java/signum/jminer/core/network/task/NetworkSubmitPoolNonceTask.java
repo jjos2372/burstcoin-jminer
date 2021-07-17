@@ -160,7 +160,7 @@ public class NetworkSubmitPoolNonceTask
     }
     catch(TimeoutException timeoutException)
     {
-      LOG.warn("Nonce was committed to pool, but not confirmed ... caused by connectionTimeout,"
+      LOG.warn("Nonce was submitted to pool, but not confirmed ... caused by connectionTimeout,"
                + " currently '" + (CoreProperties.getConnectionTimeout() / 1000) + " sec.' try increasing it!");
       publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/,
                                                          chunkPartStartNonce, this.result));
