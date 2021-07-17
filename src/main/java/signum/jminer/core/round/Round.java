@@ -88,7 +88,7 @@ public class Round
 
   // cache for next lowest
   private CheckerResultEvent queuedEvent;
-  private BigInteger lowestCommitted;
+  private BigInteger lowestSubmitted;
 
   private Set<BigInteger> runningChunkPartStartNonces;
   private Plots plots;
@@ -125,7 +125,7 @@ public class Round
     runningChunkPartStartNonces = new HashSet<>(plots.getChunkPartStartNonces().keySet());
     roundStartDate = new Date();
     lowest = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16);
-    lowestCommitted = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16);
+    lowestSubmitted = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16);
     queuedEvent = null;
     bestCommittedDeadline = Long.MAX_VALUE;
   }
@@ -182,10 +182,16 @@ public class Round
           checker.reconfigure(blockNumber, generationSignature);
         }
 
-        // start reader
-        int scoopNumber[] = new int[1];
-        scoopNumber[0] = SignumCrypto.getInstance().calculateScoop(event.getGenerationSignature(), event.getBlockNumber());
+        // Scoop number logic
+        int N = 1;
+        int scoopNumber[] = new int[N];
+        SignumCrypto crypto = SignumCrypto.getInstance();
+        scoopNumber[0] = crypto.calculateScoop(event.getGenerationSignature(), event.getBlockNumber());
+        for (int i = 1; i < N; i++) {
+          scoopNumber[i] = crypto.calculateScoop(crypto.longToBytesBE(scoopNumber[i-1]), event.getBlockNumber());
+        }
         
+        // start reader
         reader.read(previousBlockNumber, blockNumber, generationSignature, scoopNumber, lastBestCommittedDeadline, networkQuality);
 
         // ui event
@@ -213,7 +219,7 @@ public class Round
           lowest = result;
           if(calculatedDeadline < targetDeadline)
           {
-            network.commitResult(blockNumber, calculatedDeadline, nonce, event.getChunkPartStartNonce(), plots.getSize(), result, event.getPlotFilePath());
+            network.submitResult(blockNumber, calculatedDeadline, nonce, event.getChunkPartStartNonce(), plots.getSize(), result, event.getPlotFilePath());
 
             // ui event
             publisher.publishEvent(new RoundSingleResultEvent(event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline,
@@ -232,9 +238,9 @@ public class Round
             triggerFinishRoundEvent(event.getBlockNumber());
           }
         }
-        // remember next lowest in case that lowest fails to commit
+        // remember next lowest in case that lowest fails to submit
         else if(calculatedDeadline < targetDeadline
-                && result.compareTo(lowestCommitted) < 0
+                && result.compareTo(lowestSubmitted) < 0
                 && (queuedEvent == null || result.compareTo(queuedEvent.getResult()) < 0))
         {
           if(queuedEvent != null)
@@ -267,12 +273,12 @@ public class Round
     if(isCurrentRound(event.getBlockNumber(), event.getGenerationSignature()))
     {
       // if result if lower than lowestCommitted, update lowestCommitted
-      if(event.getResult() != null && event.getResult().compareTo(lowestCommitted) < 0)
+      if(event.getResult() != null && event.getResult().compareTo(lowestSubmitted) < 0)
       {
-        lowestCommitted = event.getResult();
+        lowestSubmitted = event.getResult();
 
         // if queuedLowest exist and is higher than lowestCommitted, remove queuedLowest
-        if(queuedEvent != null && lowestCommitted.compareTo(queuedEvent.getResult()) < 0)
+        if(queuedEvent != null && lowestSubmitted.compareTo(queuedEvent.getResult()) < 0)
         {
           BigInteger dl = queuedEvent.getResult().divide(BigInteger.valueOf(baseTarget));
           LOG.debug("dl '" + dl + "' removed from queue");
@@ -298,9 +304,9 @@ public class Round
     if(isCurrentRound(event.getBlockNumber(), event.getGenerationSignature()))
     {
       // reset lowest to lowestCommitted, as it does not commit successful.
-      lowest = lowestCommitted;
+      lowest = lowestSubmitted;
       // in case that queued result is lower than committedLowest, commit queued again.
-      if(queuedEvent != null && lowestCommitted.compareTo(queuedEvent.getResult()) < 0)
+      if(queuedEvent != null && lowestSubmitted.compareTo(queuedEvent.getResult()) < 0)
       {
         LOG.info("commit queued dl ...");
         handleMessage(queuedEvent);
