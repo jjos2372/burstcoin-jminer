@@ -61,6 +61,7 @@ public class Network
   private long blockNumber;
   private Timer timer;
   private byte[] generationSignature;
+  private int numberOfScoopsPerBlock;
   private String mac; // unique system id
   private Plots plots;
 
@@ -120,6 +121,7 @@ public class Network
   {
     blockNumber = event.getBlockNumber();
     generationSignature = event.getGenerationSignature();
+    numberOfScoopsPerBlock = event.getNumberOfScoopsPerBlock();
   }
 
   private void checkNetworkState()
@@ -128,18 +130,18 @@ public class Network
     if(!StringUtils.isEmpty(server))
     {
       NetworkRequestMiningInfoTask networkRequestMiningInfoTask = context.getBean(NetworkRequestMiningInfoTask.class);
-      networkRequestMiningInfoTask.init(server, blockNumber, generationSignature, plots.getSize());
+      networkRequestMiningInfoTask.init(server, blockNumber, generationSignature, numberOfScoopsPerBlock, plots.getSize());
       networkPool.execute(networkRequestMiningInfoTask);
     }
   }
 
-  public void submitResult(long blockNumber, long calculatedDeadline, BigInteger nonce, BigInteger chunkPartStartNonce, long totalCapacity,
+  public void submitResult(long blockNumber, long calculatedDeadline, BigInteger nonce, int scoopNumber, BigInteger chunkPartStartNonce, long totalCapacity,
                            BigInteger result, String plotFilePath)
   {
     if(CoreProperties.isPoolMining())
     {
       NetworkSubmitPoolNonceTask networkSubmitPoolNonceTask = context.getBean(NetworkSubmitPoolNonceTask.class);
-      networkSubmitPoolNonceTask.init(blockNumber, generationSignature, nonce, chunkPartStartNonce, calculatedDeadline,
+      networkSubmitPoolNonceTask.init(blockNumber, generationSignature, nonce, scoopNumber, chunkPartStartNonce, calculatedDeadline,
                                       totalCapacity, result, plotFilePath, mac);
       networkPool.execute(networkSubmitPoolNonceTask);
     }

@@ -36,9 +36,11 @@ public class CheckerResultEvent
   private BigInteger result;
   private String plotFilePath;
   private byte[] scoops;
+  private int[] scoopArray;
   private int lowestNonce;
 
-  public CheckerResultEvent(long blockNumber, byte[] generationSignature, BigInteger chunkPartStartNonce, int lowestNonce, String plotFilePath, byte[] scoops)
+  public CheckerResultEvent(long blockNumber, byte[] generationSignature, BigInteger chunkPartStartNonce, int lowestNonce, int[] scoopArray,
+      String plotFilePath, byte[] scoops)
   {
     this.generationSignature = generationSignature;
     this.chunkPartStartNonce = chunkPartStartNonce;
@@ -46,6 +48,7 @@ public class CheckerResultEvent
     this.lowestNonce = lowestNonce;
     this.plotFilePath = plotFilePath;
     this.scoops = scoops;
+    this.scoopArray = scoopArray;
   }
 
   public String getPlotFilePath()
@@ -71,6 +74,11 @@ public class CheckerResultEvent
   public byte[] getScoops()
   {
     return scoops;
+  }
+  
+  public int[] getScoopArray()
+  {
+    return scoopArray;
   }
 
   public int getLowestNonce()

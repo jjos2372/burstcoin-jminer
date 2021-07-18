@@ -22,6 +22,26 @@
 
 package signum.jminer.core.round;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.MathContext;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import javax.annotation.PostConstruct;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
+
 import signum.jminer.core.CoreProperties;
 import signum.jminer.core.checker.Checker;
 import signum.jminer.core.checker.event.CheckerResultEvent;
@@ -38,27 +58,8 @@ import signum.jminer.core.round.event.RoundGenSigUpdatedEvent;
 import signum.jminer.core.round.event.RoundSingleResultEvent;
 import signum.jminer.core.round.event.RoundSingleResultSkippedEvent;
 import signum.jminer.core.round.event.RoundStartedEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Component;
 import signumj.crypto.SignumCrypto;
-import signumj.crypto.hash.shabal.Shabal256;
 import signumj.crypto.plot.impl.MiningPlot;
-
-import javax.annotation.PostConstruct;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.math.MathContext;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 
 /**
  * The type Round.
@@ -183,19 +184,19 @@ public class Round
         }
 
         // Scoop number logic
-        int N = 1;
-        int scoopNumber[] = new int[N];
+        int N = event.getNumberOfScoopsPerBlock();
+        int scoopArray[] = new int[N];
         SignumCrypto crypto = SignumCrypto.getInstance();
-        scoopNumber[0] = crypto.calculateScoop(event.getGenerationSignature(), event.getBlockNumber());
+        scoopArray[0] = crypto.calculateScoop(event.getGenerationSignature(), event.getBlockNumber());
         for (int i = 1; i < N; i++) {
-          scoopNumber[i] = crypto.calculateScoop(crypto.longToBytesBE(scoopNumber[i-1]), event.getBlockNumber());
+          scoopArray[i] = crypto.calculateScoop(crypto.longToBytesBE(scoopArray[i-1]), event.getBlockNumber());
         }
         
         // start reader
-        reader.read(previousBlockNumber, blockNumber, generationSignature, scoopNumber, lastBestCommittedDeadline, networkQuality);
+        reader.read(previousBlockNumber, blockNumber, generationSignature, scoopArray, lastBestCommittedDeadline, networkQuality);
 
         // ui event
-        publisher.publishEvent(new RoundStartedEvent(restart, blockNumber, scoopNumber, plots.getSize(), targetDeadline, baseTarget, generationSignature));
+        publisher.publishEvent(new RoundStartedEvent(restart, blockNumber, scoopArray, plots.getSize(), targetDeadline, baseTarget, generationSignature));
       }
     }
   }
@@ -213,13 +214,20 @@ public class Round
 
         BigInteger deadline = result.divide(BigInteger.valueOf(baseTarget));
         long calculatedDeadline = deadline.longValue();
+        
+        int[] scoopArray = event.getScoopArray();
+        BigInteger numberOfScoops = BigInteger.valueOf(scoopArray.length);
+        int scoopNumber = scoopArray[ nonce.add(BigInteger.valueOf(scoopArray[0]))
+                                      .multiply(numberOfScoops)
+                                      .divide(MiningPlot.SCOOPS_PER_PLOT_BIGINT)
+                                      .mod(numberOfScoops).intValue() ];
 
         if(result.compareTo(lowest) < 0)
         {
           lowest = result;
           if(calculatedDeadline < targetDeadline)
           {
-            network.submitResult(blockNumber, calculatedDeadline, nonce, event.getChunkPartStartNonce(), plots.getSize(), result, event.getPlotFilePath());
+            network.submitResult(blockNumber, calculatedDeadline, nonce, scoopNumber, event.getChunkPartStartNonce(), plots.getSize(), result, event.getPlotFilePath());
 
             // ui event
             publisher.publishEvent(new RoundSingleResultEvent(event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline,
@@ -414,11 +422,7 @@ public class Round
 
   private static BigInteger calculateResult(byte[] scoops, byte[] generationSignature, int nonce)
   {
-    Shabal256 md = new Shabal256();
-    md.reset();
-    md.update(generationSignature);
-    md.update(scoops, nonce * MiningPlot.SCOOP_SIZE, MiningPlot.SCOOP_SIZE);
-    byte[] hash = md.digest();
-    return new BigInteger(1, new byte[]{hash[7], hash[6], hash[5], hash[4], hash[3], hash[2], hash[1], hash[0]});
+    byte[] scoopData = Arrays.copyOfRange(scoops, nonce * MiningPlot.SCOOP_SIZE, (nonce+1) * MiningPlot.SCOOP_SIZE);
+    return SignumCrypto.getInstance().calculateHit(generationSignature, scoopData);
   }
 }

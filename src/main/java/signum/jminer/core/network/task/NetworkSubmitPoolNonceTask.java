@@ -65,6 +65,7 @@ public class NetworkSubmitPoolNonceTask
 
   private byte[] generationSignature;
   private BigInteger nonce;
+  private int scoopNumber;
 
   private long blockNumber;
   private BigInteger chunkPartStartNonce;
@@ -82,11 +83,12 @@ public class NetworkSubmitPoolNonceTask
     this.objectMapper = objectMapper;
   }
 
-  public void init(long blockNumber, byte[] generationSignature, BigInteger nonce, BigInteger chunkPartStartNonce, long calculatedDeadline, long totalCapacity,
+  public void init(long blockNumber, byte[] generationSignature, BigInteger nonce, int scoopNumber, BigInteger chunkPartStartNonce, long calculatedDeadline, long totalCapacity,
                    BigInteger result, String plotFilePath, String mac)
   {
     this.generationSignature = generationSignature;
     this.nonce = nonce;
+    this.scoopNumber = scoopNumber;
     this.blockNumber = blockNumber;
     this.chunkPartStartNonce = chunkPartStartNonce;
     this.calculatedDeadline = calculatedDeadline;
@@ -110,6 +112,7 @@ public class NetworkSubmitPoolNonceTask
         .param("accountId", CoreProperties.getNumericAccountId())
         .param("nonce", nonce.toString())
         .param("blockheight", String.valueOf(blockNumber))
+        .param("scoopNumber", String.valueOf(scoopNumber))
         .header("X-Miner", HEADER_MINER_NAME)
         .header("X-Capacity", String.valueOf(gb))
 

@@ -32,14 +32,16 @@ public class ReaderLoadedPartEvent
   private long blockNumber;
 
   private byte[] scoops;
+  private int[] scoopArray;
   private String plotFilePath;
 
-  public ReaderLoadedPartEvent(long blockNumber, byte[] generationSignature, byte[] scoops, BigInteger chunkPartStartNonce, String plotFilePath)
+  public ReaderLoadedPartEvent(long blockNumber, byte[] generationSignature, byte[] scoops, int[] scoopArray, BigInteger chunkPartStartNonce, String plotFilePath)
   {
     this.generationSignature = generationSignature;
     this.chunkPartStartNonce = chunkPartStartNonce;
     this.blockNumber = blockNumber;
     this.scoops = scoops;
+    this.scoopArray = scoopArray;
     this.plotFilePath = plotFilePath;
   }
 
@@ -56,6 +58,11 @@ public class ReaderLoadedPartEvent
   public byte[] getScoops()
   {
     return scoops;
+  }
+  
+  public int[] getScoopArray()
+  {
+    return scoopArray;
   }
 
   public BigInteger getChunkPartStartNonce()

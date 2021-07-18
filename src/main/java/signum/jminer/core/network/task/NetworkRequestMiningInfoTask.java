@@ -59,6 +59,7 @@ public class NetworkRequestMiningInfoTask
   private final ApplicationEventPublisher publisher;
 
   private byte[] generationSignature;
+  private int numberOfScoopsPerBlock;
   private long blockNumber;
   private String server;
 
@@ -74,10 +75,11 @@ public class NetworkRequestMiningInfoTask
     this.publisher = publisher;
   }
 
-  public void init(String server, long blockNumber, byte[] generationSignature, long plotSizeInByte)
+  public void init(String server, long blockNumber, byte[] generationSignature, int numberOfScoopsPerBlock, long plotSizeInByte)
   {
     this.server = server;
     this.generationSignature = generationSignature;
+    this.numberOfScoopsPerBlock = numberOfScoopsPerBlock;
     this.blockNumber = blockNumber;
     this.plotSizeInByte = plotSizeInByte;
 
@@ -111,13 +113,17 @@ public class NetworkRequestMiningInfoTask
         success = true;
         long newBlockNumber = Long.parseUnsignedLong(result.getHeight());
         byte[] newGenerationSignature = SignumCrypto.getInstance().parseHexString(result.getGenerationSignature());
+        numberOfScoopsPerBlock = 1;
+        if(result.getNumberOfScoopsPerBlock() != null) {
+          numberOfScoopsPerBlock = Integer.parseInt(result.getNumberOfScoopsPerBlock());
+        }
 
         // higher block 'or' same block with other generationSignature
         if(!Arrays.equals(newGenerationSignature, generationSignature))
         {
           long baseTarget = Long.parseUnsignedLong(result.getBaseTarget());
           long targetDeadline = getTargetDeadline(result.getTargetDeadline(), baseTarget);
-          publisher.publishEvent(new NetworkStateChangeEvent(newBlockNumber, baseTarget, newGenerationSignature, targetDeadline));
+          publisher.publishEvent(new NetworkStateChangeEvent(newBlockNumber, baseTarget, newGenerationSignature, numberOfScoopsPerBlock, targetDeadline));
         }
         else
         {

@@ -48,6 +48,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.util.Arrays;
 
 
 public class JMinerCommandLine
@@ -155,7 +156,7 @@ public class JMinerCommandLine
         String action = event.isRestart() ? "RE-START" : "START";
         LOG.info("-------------------------------------------------------");
         LOG.info(action + " block '" + event.getBlockNumber() + "', "
-                 + "scoopNumber '" + event.getScoopNumber() + "', "
+                 + "scoopNumbers '" + Arrays.toString(event.getScoopNumber()) + "', "
                  + "capacity '" + event.getCapacity() / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR + " " + G_UNIT + "'");
         String target = event.getTargetDeadline() == Long.MAX_VALUE ? "N/A" : String.valueOf(event.getTargetDeadline());
         LOG.info("      targetDeadline '" + target + "', " + "netDiff '" + String.valueOf(18325193796L / event.getBaseTarget()) + "', "

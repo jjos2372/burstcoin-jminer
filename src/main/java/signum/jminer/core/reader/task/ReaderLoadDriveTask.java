@@ -71,7 +71,7 @@ public class ReaderLoadDriveTask
 
   private byte[] generationSignature;
   private PlotDrive plotDrive;
-  private int[] scoopNumber;
+  private int[] scoopArray;
   private long blockNumber;
   private boolean showDriveInfo;
 
@@ -81,9 +81,9 @@ public class ReaderLoadDriveTask
     this.publisher = publisher;
   }
 
-  public void init(int[] scoopNumber, long blockNumber, byte[] generationSignature, PlotDrive plotDrive)
+  public void init(int[] scoopArray, long blockNumber, byte[] generationSignature, PlotDrive plotDrive)
   {
-    this.scoopNumber = scoopNumber;
+    this.scoopArray = scoopArray;
     this.blockNumber = blockNumber;
     this.generationSignature = generationSignature;
     this.plotDrive = plotDrive;
@@ -144,7 +144,7 @@ public class ReaderLoadDriveTask
     
     public RandomAccessFileWrapper(Path path) throws IOException {
       if(Platform.isLinux())
-        dra = new DirectRandomAccessFile(path.toFile(), "r");
+        dra = new DirectRandomAccessFile(path.toFile(), "r"); // , MiningPlot.PLOT_SIZE/4);
       else
         ra = new RandomAccessFile(path.toFile(), "r");
     }
@@ -174,54 +174,12 @@ public class ReaderLoadDriveTask
   
   private boolean load(PlotFile plotFile) {
     try (RandomAccessFileWrapper sbc = new RandomAccessFileWrapper(plotFile.getFilePath())) {
-      
-      int noncesToSwitchScoop = MiningPlot.SCOOPS_PER_PLOT/scoopNumber.length;
-      int bytesToSwitchScoop = MiningPlot.PLOT_SIZE/scoopNumber.length;
-
       int partSizeNonces = (int)(plotFile.getStaggeramt() / plotFile.getNumberOfParts());
       byte []partBuffer = new byte[partSizeNonces * MiningPlot.SCOOP_SIZE];
 
       for(int partNumber = 0; partNumber < plotFile.getNumberOfParts(); partNumber++) {
-        for (int scoopNumberPosition = 0; scoopNumberPosition < scoopNumber.length; scoopNumberPosition++) {
-          BigInteger startNonce = plotFile.getStartnonce().add(BigInteger.valueOf(partNumber * partSizeNonces));
-          
-          int startOffsetNonces = startNonce.add(BigInteger.valueOf(noncesToSwitchScoop * scoopNumberPosition))
-              .mod(BigInteger.valueOf(MiningPlot.SCOOPS_PER_PLOT)).intValue();
-          if(scoopNumber.length == 1) {
-            // single scoop, so we can speed things up
-            startOffsetNonces = 0;
-            bytesToSwitchScoop = partBuffer.length;
-          }
-          
-          startOffsetNonces += partSizeNonces*partNumber;
-        
-          int startOffsetBytes = startOffsetNonces * MiningPlot.SCOOP_SIZE;
-          
-          long filePositionBytes = startOffsetBytes + scoopNumber[scoopNumberPosition] * plotFile.getStaggeramt() * MiningPlot.SCOOP_SIZE;
-          
-          while(startOffsetBytes < partBuffer.length) {
-            sbc.seek(filePositionBytes);
-            
-            int bytesToRead = Math.min(bytesToSwitchScoop, partBuffer.length - startOffsetBytes);
-            sbc.read(partBuffer, startOffsetBytes, bytesToRead);
-            if(scoopNumber.length == 1) {
-              // we are done already
-              break;
-            }
-            
-            if(bytesToRead < bytesToSwitchScoop) {
-              // this scoop number has the remaining bytes on the beginning of the file, lets read it now
-              int bytesToReadOnStart = bytesToSwitchScoop - bytesToRead;
-              
-              filePositionBytes = startOffsetNonces * MiningPlot.SCOOP_SIZE
-                  + scoopNumber[scoopNumberPosition] * plotFile.getStaggeramt() * MiningPlot.SCOOP_SIZE;
-              sbc.seek(filePositionBytes);
-              sbc.read(partBuffer, 0, bytesToReadOnStart);
-            }
-            
-            startOffsetBytes += MiningPlot.PLOT_SIZE;
-            filePositionBytes += MiningPlot.PLOT_SIZE;
-          }
+        for (int scoopNumberPosition = 0; scoopNumberPosition < scoopArray.length; scoopNumberPosition++) {
+          readPart(plotFile, sbc, partSizeNonces, partBuffer, partNumber, scoopNumberPosition);
         }
 
         if(Reader.blockNumber.get() != blockNumber || !Arrays.equals(Reader.generationSignature, generationSignature)) {
@@ -232,11 +190,12 @@ public class ReaderLoadDriveTask
         else {
           BigInteger chunkPartStartNonce = plotFile.getStartnonce().add(BigInteger.valueOf(partNumber * partSizeNonces));
           final byte[] scoops = partBuffer;
-          publisher.publishEvent(new ReaderLoadedPartEvent(blockNumber, generationSignature, scoops, chunkPartStartNonce, plotFile.getFilePath().toString()));
+          publisher.publishEvent(new ReaderLoadedPartEvent(blockNumber, generationSignature, scoops, scoopArray, chunkPartStartNonce, plotFile.getFilePath().toString()));
 
           if(!CoreProperties.isUseOpenCl() && shaLibChecker.getLoadError() == null) {
             int lowestNonce = shaLibChecker.findLowest(generationSignature, scoops);
-            publisher.publishEvent(new CheckerResultEvent(blockNumber, generationSignature, chunkPartStartNonce, lowestNonce,
+
+            publisher.publishEvent(new CheckerResultEvent(blockNumber, generationSignature, chunkPartStartNonce, lowestNonce, scoopArray,
                 plotFile.getFilePath().toString(), scoops));
           }
         }
@@ -258,4 +217,53 @@ public class ReaderLoadDriveTask
     }
     return false;
   }
+  
+  private void readPart(PlotFile plotFile, RandomAccessFileWrapper sbc, int partSizeNonces,
+      byte []partBuffer, int partNumber, int scoopNumberPosition) throws IOException {
+    int noncesToSwitchScoop = MiningPlot.SCOOPS_PER_PLOT/scoopArray.length;
+    int bytesToSwitchScoop = MiningPlot.PLOT_SIZE/scoopArray.length;
+
+    BigInteger startNonce = plotFile.getStartnonce().add(BigInteger.valueOf(partNumber * partSizeNonces));
+
+    int scoopAlignmetOffset = startNonce.add(BigInteger.valueOf(scoopArray[0])).mod(MiningPlot.SCOOPS_PER_PLOT_BIGINT).intValue();
+    if(scoopAlignmetOffset != 0) {
+      scoopAlignmetOffset = MiningPlot.SCOOPS_PER_PLOT - scoopAlignmetOffset;
+    }
+    int startOffsetNonces = scoopAlignmetOffset + noncesToSwitchScoop * scoopNumberPosition;
+    if(scoopArray.length == 1) {
+      // single scoop, so we can speed things up
+      startOffsetNonces = 0;
+      bytesToSwitchScoop = partBuffer.length;
+    }
+
+    startOffsetNonces += partSizeNonces*partNumber;
+    int startOffsetBytes = startOffsetNonces * MiningPlot.SCOOP_SIZE;
+
+    long filePositionBytes = startOffsetBytes + scoopArray[scoopNumberPosition] * plotFile.getStaggeramt() * MiningPlot.SCOOP_SIZE;
+
+    while(startOffsetBytes < partBuffer.length) {
+      sbc.seek(filePositionBytes);
+
+      int bytesToRead = Math.min(bytesToSwitchScoop, partBuffer.length - startOffsetBytes);
+      sbc.read(partBuffer, startOffsetBytes, bytesToRead);
+      if(scoopArray.length == 1) {
+        // we are done already
+        break;
+      }
+
+      if(bytesToRead < bytesToSwitchScoop) {
+        // this scoop number has the remaining bytes on the beginning of the file, lets read it now
+        int bytesToReadOnStart = bytesToSwitchScoop - bytesToRead;
+
+        filePositionBytes = startOffsetNonces * MiningPlot.SCOOP_SIZE
+            + scoopArray[scoopNumberPosition] * plotFile.getStaggeramt() * MiningPlot.SCOOP_SIZE;
+        sbc.seek(filePositionBytes);
+        sbc.read(partBuffer, 0, bytesToReadOnStart);
+      }
+
+      startOffsetBytes += MiningPlot.PLOT_SIZE;
+      filePositionBytes += MiningPlot.PLOT_SIZE;
+    }
+  }
+
 }

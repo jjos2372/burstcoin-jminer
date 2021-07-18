@@ -135,7 +135,7 @@ public class Reader
   }
 
   /* starts reader (once per block) */
-  public void read(long previousBlockNumber, long blockNumber, byte[] generationSignature, int[] scoopNumber, long lastBestCommittedDeadline, int networkQuality)
+  public void read(long previousBlockNumber, long blockNumber, byte[] generationSignature, int[] scoopArray, long lastBestCommittedDeadline, int networkQuality)
   {
     Reader.blockNumber.set(blockNumber);
     Reader.generationSignature = generationSignature;
@@ -198,7 +198,7 @@ public class Reader
       }
       else {
         ReaderLoadDriveTask readerLoadDriveTask = context.getBean(ReaderLoadDriveTask.class);
-        readerLoadDriveTask.init(scoopNumber, blockNumber, generationSignature, plotDrive);
+        readerLoadDriveTask.init(scoopArray, blockNumber, generationSignature, plotDrive);
         readerPool.execute(readerLoadDriveTask);
       }
     }

@@ -34,6 +34,7 @@ public class NetworkStateChangeEvent
 {
   private long blockNumber;
   private byte[] generationSignature;
+  private int numberOfScoopsPerBlock;
   private long baseTarget;
 
   // targetDeadline provided via property or server in miningInfo (depends on solo/pool mining)
@@ -47,13 +48,14 @@ public class NetworkStateChangeEvent
    * @param generationSignature the generation signature
    * @param targetDeadline the target deadline
    */
-  public NetworkStateChangeEvent(long blockNumber, long baseTarget, byte[] generationSignature, long targetDeadline)
+  public NetworkStateChangeEvent(long blockNumber, long baseTarget, byte[] generationSignature, int numberOfScoopsPerBlock, long targetDeadline)
   {
     super(blockNumber);
 
     this.blockNumber = blockNumber;
     this.baseTarget = baseTarget;
     this.generationSignature = generationSignature;
+    this.numberOfScoopsPerBlock = numberOfScoopsPerBlock;
     this.targetDeadline = targetDeadline;
   }
 
@@ -65,6 +67,11 @@ public class NetworkStateChangeEvent
   public long getBlockNumber()
   {
     return blockNumber;
+  }
+  
+  public int getNumberOfScoopsPerBlock()
+  {
+    return numberOfScoopsPerBlock;
   }
 
   /**

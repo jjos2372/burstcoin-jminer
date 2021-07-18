@@ -31,6 +31,7 @@ public class MiningInfo
   private String generationSignature;
   private String baseTarget;
   private String height;
+  private String numberOfScoopsPerBlock;
 
   // only if pool
   private long targetDeadline;
@@ -48,6 +49,11 @@ public class MiningInfo
   public String getHeight()
   {
     return height;
+  }
+  
+  public String getNumberOfScoopsPerBlock()
+  {
+    return numberOfScoopsPerBlock;
   }
 
   public long getTargetDeadline()
