@@ -285,19 +285,6 @@ public class DeviceInfos
   }
 
   /**
-   * Whether device and host have a unified memory subsystem
-   *
-   * @param device The device
-   *
-   * @return The value
-   */
-  public static boolean getHostUnifiedMemory(cl_device_id device)
-  {
-    return Infos.getBool(Infos.FOR_DEVICE, device,
-                         CL_DEVICE_HOST_UNIFIED_MEMORY);
-  }
-
-  /**
    * The resolution of device timer in nanoseconds
    *
    * @param device The device
@@ -309,34 +296,6 @@ public class DeviceInfos
     return Infos.getSize(Infos.FOR_DEVICE, device,
                          CL_DEVICE_PROFILING_TIMER_RESOLUTION);
   }
-
-  /**
-   * The supported command-queue properties
-   *
-   * @param device The device
-   *
-   * @return The value
-   */
-  public static long getQueueProperties(cl_device_id device)
-  {
-    return Infos.getLong(Infos.FOR_DEVICE, device,
-                         CL_DEVICE_QUEUE_PROPERTIES);
-  }
-
-  /**
-   * The supported command-queue properties as a String
-   *
-   * @param device The device
-   *
-   * @return The value
-   */
-  public static String getQueuePropertiesString(cl_device_id device)
-  {
-    return stringFor_cl_command_queue_properties(
-      Infos.getLong(Infos.FOR_DEVICE, device,
-                    CL_DEVICE_QUEUE_PROPERTIES));
-  }
-
 
   /**
    * Single precision floating-point capability
