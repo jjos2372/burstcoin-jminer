@@ -82,10 +82,7 @@ public class Checker
       {
         publisher.publishEvent(new CheckerResultEvent(blockNumber.get(), generationSignature, event.getChunkPartStartNonce(), lowestNonce, event.getScoopArray(),
                                                       event.getPlotFilePath(), event.getScoops()));
-      }
-      else
-      {
-        LOG.trace("skipped handle result ... outdated mining info...");
+        return;
       }
     }
     else
