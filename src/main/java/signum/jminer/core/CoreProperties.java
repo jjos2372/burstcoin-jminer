@@ -46,6 +46,7 @@ public class CoreProperties
   private static final int DEFAULT_DEVICE_ID = 0;
   private static final boolean DEFAULT_POOL_MINING = true;
   private static final boolean DEFAULT_FORCE_LOCAL_TARGET_DEADLINE = false;
+  private static final boolean DEFAULT_SUBMIT_ONLY_BEST_DEADLINE = true;
   private static final boolean DEFAULT_DYNAMIC_TARGET_DEADLINE = false;
   private static final long DEFAULT_TARGET_DEADLINE = Long.MAX_VALUE;
   private static final String DEFAULT_SOLO_SERVER = "http://localhost:8125";
@@ -85,6 +86,7 @@ public class CoreProperties
   private static Boolean scanPathsEveryRound;
   private static Boolean poolMining;
   private static Boolean forceLocalTargetDeadline;
+  private static Boolean submitOnlyBestDeadline;
   private static Boolean dynamicTargetDeadline;
   private static Long targetDeadline;
   private static List<String> plotPaths;
@@ -225,6 +227,20 @@ public class CoreProperties
     	forceLocalTargetDeadline = asBoolean("forceLocalTargetDeadline", DEFAULT_FORCE_LOCAL_TARGET_DEADLINE);
     }
     return forceLocalTargetDeadline;
+  }
+  
+  /**
+   * Is submit only the best deadline
+   *
+   * @return the boolean
+   */
+  public static boolean isSubmitOnlyBestDeadline()
+  {
+    if(submitOnlyBestDeadline == null)
+    {
+      submitOnlyBestDeadline = asBoolean("submitOnlyBestDeadline", DEFAULT_SUBMIT_ONLY_BEST_DEADLINE);
+    }
+    return submitOnlyBestDeadline;
   }
 
   public static boolean isDynamicTargetDeadline()

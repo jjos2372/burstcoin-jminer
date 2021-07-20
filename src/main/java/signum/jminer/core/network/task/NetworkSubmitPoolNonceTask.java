@@ -189,13 +189,6 @@ public class NetworkSubmitPoolNonceTask
       publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/,
                                                          chunkPartStartNonce, this.result));
     }
-    catch(EOFException e)
-    {
-      LOG.warn("Error: Failed to submit nonce to pool due EOFException.");
-      LOG.debug("EOFException: " + e.getMessage(), e);
-      publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/,
-                                                         chunkPartStartNonce, this.result));
-    }
     catch(JsonMappingException e)
     {
       LOG.warn("Error: On submit nonce to pool, could not parse response: '" + responseContentAsString + "'");

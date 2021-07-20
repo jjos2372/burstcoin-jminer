@@ -84,12 +84,12 @@ public class Round
   private long baseTarget;
   private Date roundStartDate;
 
-  private BigInteger lowest;
-  private long bestCommittedDeadline;
+  private BigInteger lowestHit;
+  private long bestConfirmedDeadline;
 
   // cache for next lowest
   private CheckerResultEvent queuedEvent;
-  private BigInteger lowestSubmitted;
+  private BigInteger lowestConfirmed;
 
   private Set<BigInteger> runningChunkPartStartNonces;
   private Plots plots;
@@ -125,10 +125,10 @@ public class Round
     networkSuccessCount = 0;
     runningChunkPartStartNonces = new HashSet<>(plots.getChunkPartStartNonces().keySet());
     roundStartDate = new Date();
-    lowest = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16);
-    lowestSubmitted = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16);
+    lowestHit = BigInteger.valueOf(Long.MAX_VALUE);
+    lowestConfirmed = BigInteger.valueOf(Long.MAX_VALUE);
     queuedEvent = null;
-    bestCommittedDeadline = Long.MAX_VALUE;
+    bestConfirmedDeadline = Long.MAX_VALUE;
   }
 
   @EventListener
@@ -170,7 +170,7 @@ public class Round
         Round.this.baseTarget = event.getBaseTarget();
         Round.this.targetDeadline = event.getTargetDeadline();
 
-        long lastBestCommittedDeadline = bestCommittedDeadline;
+        long lastBestCommittedDeadline = bestConfirmedDeadline;
 
         plots = reader.getPlots();
         int networkQuality = getNetworkQuality();
@@ -204,17 +204,34 @@ public class Round
   @EventListener
   public void handleMessage(CheckerResultEvent event)
   {
-    synchronized(reader)
-    {
-      if(isCurrentRound(event.getBlockNumber(), event.getGenerationSignature()))
-      {
-        BigInteger nonce = event.getChunkPartStartNonce().add(BigInteger.valueOf(event.getLowestNonce()));
-        BigInteger result = calculateResult(event.getScoops(), generationSignature, event.getLowestNonce());
-        event.setResult(result);
+    synchronized(reader) {
+      if(!isCurrentRound(event.getBlockNumber(), event.getGenerationSignature())) {
+        LOG.trace("event for previous block ...");
+        return;
+      }
 
-        BigInteger deadline = result.divide(BigInteger.valueOf(baseTarget));
-        long calculatedDeadline = deadline.longValue();
+      BigInteger nonce = event.getChunkPartStartNonce().add(BigInteger.valueOf(event.getLowestNonce()));
+      BigInteger hit = calculateHit(event.getScoops(), generationSignature, event.getLowestNonce());
+      event.setResult(hit);
+      
+      BigInteger deadline = hit.divide(BigInteger.valueOf(baseTarget));
+      long calculatedDeadline = deadline.longValue();
+      
+      if(hit.compareTo(lowestHit) > 0) {
+        // ui event
+        if(CoreProperties.isShowSkippedDeadlines()) {
+          publisher.publishEvent(new RoundSingleResultSkippedEvent(event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline,
+              targetDeadline, poolMining));
+        }
+        // chunkPartStartNonce finished
+        runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
+        triggerFinishRoundEvent(event.getBlockNumber());
         
+        return;
+      }
+
+      lowestHit = hit;
+      if(calculatedDeadline < targetDeadline) {
         int[] scoopArray = event.getScoopArray();
         BigInteger numberOfScoops = BigInteger.valueOf(scoopArray.length);
         int scoopNumber = scoopArray[ nonce.add(BigInteger.valueOf(scoopArray[0]))
@@ -222,56 +239,12 @@ public class Round
                                       .divide(MiningPlot.SCOOPS_PER_PLOT_BIGINT)
                                       .mod(numberOfScoops).intValue() ];
 
-        if(result.compareTo(lowest) < 0)
-        {
-          lowest = result;
-          if(calculatedDeadline < targetDeadline)
-          {
-            network.submitResult(blockNumber, calculatedDeadline, nonce, scoopNumber, event.getChunkPartStartNonce(), plots.getSize(), result, event.getPlotFilePath());
+        network.submitResult(blockNumber, calculatedDeadline, nonce, scoopNumber, event.getChunkPartStartNonce(), plots.getSize(), hit, event.getPlotFilePath());
 
-            // ui event
-            publisher.publishEvent(new RoundSingleResultEvent(event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline,
-                                                              poolMining));
-          }
-          else
-          {
-            // ui event
-            if(CoreProperties.isShowSkippedDeadlines())
-            {
-              publisher.publishEvent(new RoundSingleResultSkippedEvent(event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline,
-                                                                       targetDeadline, poolMining));
-            }
-            // chunkPartStartNonce finished
-            runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
-            triggerFinishRoundEvent(event.getBlockNumber());
-          }
-        }
-        // remember next lowest in case that lowest fails to submit
-        else if(calculatedDeadline < targetDeadline
-                && result.compareTo(lowestSubmitted) < 0
-                && (queuedEvent == null || result.compareTo(queuedEvent.getResult()) < 0))
-        {
-          if(queuedEvent != null)
-          {
-            // remove previous queued
-            runningChunkPartStartNonces.remove(queuedEvent.getChunkPartStartNonce());
-          }
-          LOG.info("dl '" + calculatedDeadline + "' queued");
-          queuedEvent = event;
-
-          triggerFinishRoundEvent(event.getBlockNumber());
-        }
-        else
-        {
-          // chunkPartStartNonce finished
-          runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
-          triggerFinishRoundEvent(event.getBlockNumber());
-        }
-      }
-      else
-      {
-        LOG.trace("event for previous block ...");
-      }
+        // ui event
+        publisher.publishEvent(new RoundSingleResultEvent(event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline,
+            poolMining));
+      }        
     }
   }
 
@@ -281,12 +254,12 @@ public class Round
     if(isCurrentRound(event.getBlockNumber(), event.getGenerationSignature()))
     {
       // if result if lower than lowestCommitted, update lowestCommitted
-      if(event.getResult() != null && event.getResult().compareTo(lowestSubmitted) < 0)
+      if(event.getResult() != null && event.getResult().compareTo(lowestConfirmed) < 0)
       {
-        lowestSubmitted = event.getResult();
+        lowestConfirmed = event.getResult();
 
-        // if queuedLowest exist and is higher than lowestCommitted, remove queuedLowest
-        if(queuedEvent != null && lowestSubmitted.compareTo(queuedEvent.getResult()) < 0)
+        // if queuedLowest exist and is higher than lowest confirmed, remove queued
+        if(queuedEvent != null && lowestConfirmed.compareTo(queuedEvent.getResult()) < 0)
         {
           BigInteger dl = queuedEvent.getResult().divide(BigInteger.valueOf(baseTarget));
           LOG.debug("dl '" + dl + "' removed from queue");
@@ -298,9 +271,9 @@ public class Round
 
       runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
 
-      if(bestCommittedDeadline > event.getDeadline())
+      if(bestConfirmedDeadline > event.getDeadline())
       {
-        bestCommittedDeadline = event.getDeadline();
+        bestConfirmedDeadline = event.getDeadline();
       }
       triggerFinishRoundEvent(event.getBlockNumber());
     }
@@ -311,12 +284,10 @@ public class Round
   {
     if(isCurrentRound(event.getBlockNumber(), event.getGenerationSignature()))
     {
-      // reset lowest to lowestCommitted, as it does not commit successful.
-      lowest = lowestSubmitted;
       // in case that queued result is lower than committedLowest, commit queued again.
-      if(queuedEvent != null && lowestSubmitted.compareTo(queuedEvent.getResult()) < 0)
+      if(queuedEvent != null && lowestConfirmed.compareTo(queuedEvent.getResult()) < 0)
       {
-        LOG.info("commit queued dl ...");
+        LOG.info("submit queued dl ...");
         handleMessage(queuedEvent);
 
         queuedEvent = null;
@@ -371,7 +342,7 @@ public class Round
       @Override
       public void run()
       {
-        publisher.publishEvent(new RoundFinishedEvent(blockNumber, bestCommittedDeadline, elapsedRoundTime, networkQuality));
+        publisher.publishEvent(new RoundFinishedEvent(blockNumber, bestConfirmedDeadline, elapsedRoundTime, networkQuality));
       }
     }, 250); // fire deferred
 
@@ -420,7 +391,7 @@ public class Round
            && Arrays.equals(generationSignature, currentGenerationSignature);
   }
 
-  private static BigInteger calculateResult(byte[] scoops, byte[] generationSignature, int nonce)
+  private static BigInteger calculateHit(byte[] scoops, byte[] generationSignature, int nonce)
   {
     byte[] scoopData = Arrays.copyOfRange(scoops, nonce * MiningPlot.SCOOP_SIZE, (nonce+1) * MiningPlot.SCOOP_SIZE);
     return SignumCrypto.getInstance().calculateHit(generationSignature, scoopData);
