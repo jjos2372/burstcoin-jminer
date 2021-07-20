@@ -44,8 +44,7 @@ import org.springframework.util.StringUtils;
 import signum.jminer.core.CoreProperties;
 import signum.jminer.core.network.event.NetworkStateChangeEvent;
 import signum.jminer.core.network.task.NetworkRequestMiningInfoTask;
-import signum.jminer.core.network.task.NetworkSubmitPoolNonceTask;
-import signum.jminer.core.network.task.NetworkSubmitSoloNonceTask;
+import signum.jminer.core.network.task.NetworkSubmitNonceTask;
 import signum.jminer.core.reader.Reader;
 import signum.jminer.core.reader.data.Plots;
 
@@ -81,17 +80,6 @@ public class Network
 
     mac = getMac();
     timer = new Timer();
-
-    if(CoreProperties.isPoolMining() && (StringUtils.isEmpty(CoreProperties.getPoolServer()) || StringUtils.isEmpty(CoreProperties.getNumericAccountId())))
-    {
-      LOG.error("init pool network failed!");
-      LOG.error("jminer.properties: 'poolServer' or 'numericAccountId' is missing?!");
-    }
-    if(!CoreProperties.isPoolMining() && (StringUtils.isEmpty(CoreProperties.getSoloServer()) || StringUtils.isEmpty(CoreProperties.getPassPhrase())))
-    {
-      LOG.error("init solo network failed!");
-      LOG.error("jminer.properties: 'soloServer' or 'passPhrase' is missing?!");
-    }
   }
 
   private String getMac()
@@ -126,8 +114,8 @@ public class Network
 
   private void checkNetworkState()
   {
-    String server = CoreProperties.isPoolMining() ? CoreProperties.getPoolServer() : CoreProperties.getSoloServer();
-    if(!StringUtils.isEmpty(server))
+    String server = CoreProperties.getServer();
+    if(!StringUtils.hasText(server))
     {
       NetworkRequestMiningInfoTask networkRequestMiningInfoTask = context.getBean(NetworkRequestMiningInfoTask.class);
       networkRequestMiningInfoTask.init(server, blockNumber, generationSignature, numberOfScoopsPerBlock, plots.getSize());
@@ -135,22 +123,13 @@ public class Network
     }
   }
 
-  public void submitResult(long blockNumber, long calculatedDeadline, BigInteger nonce, int scoopNumber, BigInteger chunkPartStartNonce, long totalCapacity,
+  public void submitResult(long blockNumber, long calculatedDeadline, String accountID, BigInteger nonce, int scoopNumber, BigInteger chunkPartStartNonce, long totalCapacity,
                            BigInteger result, String plotFilePath)
   {
-    if(CoreProperties.isPoolMining())
-    {
-      NetworkSubmitPoolNonceTask networkSubmitPoolNonceTask = context.getBean(NetworkSubmitPoolNonceTask.class);
-      networkSubmitPoolNonceTask.init(blockNumber, generationSignature, nonce, scoopNumber, chunkPartStartNonce, calculatedDeadline,
-                                      totalCapacity, result, plotFilePath, mac);
-      networkPool.execute(networkSubmitPoolNonceTask);
-    }
-    else
-    {
-      NetworkSubmitSoloNonceTask networkSubmitSoloNonceTask = context.getBean(NetworkSubmitSoloNonceTask.class);
-      networkSubmitSoloNonceTask.init(blockNumber, generationSignature, nonce, chunkPartStartNonce, calculatedDeadline, result);
-      networkPool.execute(networkSubmitSoloNonceTask);
-    }
+    NetworkSubmitNonceTask networkSubmitPoolNonceTask = context.getBean(NetworkSubmitNonceTask.class);
+    networkSubmitPoolNonceTask.init(blockNumber, generationSignature, accountID, nonce, scoopNumber, chunkPartStartNonce, calculatedDeadline,
+        totalCapacity, result, plotFilePath, mac);
+    networkPool.execute(networkSubmitPoolNonceTask);
   }
 
   public void startMining()

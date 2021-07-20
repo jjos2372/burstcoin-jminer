@@ -75,7 +75,6 @@ public class Round
   private final Network network;
   private final ApplicationEventPublisher publisher;
 
-  private boolean poolMining;
   private long targetDeadline;
 
   private Timer timer;
@@ -115,7 +114,6 @@ public class Round
   @PostConstruct
   protected void postConstruct()
   {
-    this.poolMining = CoreProperties.isPoolMining();
     timer = new Timer();
   }
 
@@ -170,7 +168,7 @@ public class Round
         Round.this.baseTarget = event.getBaseTarget();
         Round.this.targetDeadline = event.getTargetDeadline();
 
-        long lastBestCommittedDeadline = bestConfirmedDeadline;
+        long lastBestConfirmedDeadline = bestConfirmedDeadline;
 
         plots = reader.getPlots();
         int networkQuality = getNetworkQuality();
@@ -193,7 +191,7 @@ public class Round
         }
         
         // start reader
-        reader.read(previousBlockNumber, blockNumber, generationSignature, scoopArray, lastBestCommittedDeadline, networkQuality);
+        reader.read(previousBlockNumber, blockNumber, generationSignature, scoopArray, lastBestConfirmedDeadline, networkQuality);
 
         // ui event
         publisher.publishEvent(new RoundStartedEvent(restart, blockNumber, scoopArray, plots.getSize(), targetDeadline, baseTarget, generationSignature));
@@ -221,7 +219,7 @@ public class Round
         // ui event
         if(CoreProperties.isShowSkippedDeadlines()) {
           publisher.publishEvent(new RoundSingleResultSkippedEvent(event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline,
-              targetDeadline, poolMining));
+              targetDeadline));
         }
         // chunkPartStartNonce finished
         runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
@@ -239,11 +237,11 @@ public class Round
                                       .divide(MiningPlot.SCOOPS_PER_PLOT_BIGINT)
                                       .mod(numberOfScoops).intValue() ];
 
-        network.submitResult(blockNumber, calculatedDeadline, nonce, scoopNumber, event.getChunkPartStartNonce(), plots.getSize(), hit, event.getPlotFilePath());
+        network.submitResult(blockNumber, calculatedDeadline, event.getPlotFile().getAccountID(), nonce, scoopNumber, event.getChunkPartStartNonce(), plots.getSize(),
+            hit, event.getPlotFile().getFilePath().toString());
 
         // ui event
-        publisher.publishEvent(new RoundSingleResultEvent(event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline,
-            poolMining));
+        publisher.publishEvent(new RoundSingleResultEvent(event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline));
       }        
     }
   }

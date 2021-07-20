@@ -34,6 +34,7 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.HttpContentResponse;
 import org.eclipse.jetty.client.HttpResponseException;
 import org.eclipse.jetty.client.api.ContentResponse;
+import org.eclipse.jetty.client.api.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +43,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.io.EOFException;
 import java.math.BigInteger;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -53,10 +53,10 @@ import java.util.concurrent.TimeoutException;
  */
 @Component
 @Scope("prototype")
-public class NetworkSubmitPoolNonceTask
+public class NetworkSubmitNonceTask
   implements Runnable
 {
-  private static final Logger LOG = LoggerFactory.getLogger(NetworkSubmitPoolNonceTask.class);
+  private static final Logger LOG = LoggerFactory.getLogger(NetworkSubmitNonceTask.class);
   private static final String HEADER_MINER_NAME = "signum-jminer-0.6.0";
 
   private final ApplicationEventPublisher publisher;
@@ -65,6 +65,7 @@ public class NetworkSubmitPoolNonceTask
 
   private byte[] generationSignature;
   private BigInteger nonce;
+  private String accountID;
   private int scoopNumber;
 
   private long blockNumber;
@@ -76,17 +77,18 @@ public class NetworkSubmitPoolNonceTask
   private String mac;
 
   @Autowired
-  public NetworkSubmitPoolNonceTask(ApplicationEventPublisher publisher, HttpClient httpClient, ObjectMapper objectMapper)
+  public NetworkSubmitNonceTask(ApplicationEventPublisher publisher, HttpClient httpClient, ObjectMapper objectMapper)
   {
     this.publisher = publisher;
     this.httpClient = httpClient;
     this.objectMapper = objectMapper;
   }
 
-  public void init(long blockNumber, byte[] generationSignature, BigInteger nonce, int scoopNumber, BigInteger chunkPartStartNonce, long calculatedDeadline, long totalCapacity,
+  public void init(long blockNumber, byte[] generationSignature, String accountID, BigInteger nonce, int scoopNumber, BigInteger chunkPartStartNonce, long calculatedDeadline, long totalCapacity,
                    BigInteger result, String plotFilePath, String mac)
   {
     this.generationSignature = generationSignature;
+    this.accountID = accountID;
     this.nonce = nonce;
     this.scoopNumber = scoopNumber;
     this.blockNumber = blockNumber;
@@ -106,10 +108,10 @@ public class NetworkSubmitPoolNonceTask
     {
       long gb = totalCapacity / 1000 / 1000 / 1000;
 
-      ContentResponse response = httpClient.POST(CoreProperties.getPoolServer() + "/burst")
+      Request request = httpClient.POST(CoreProperties.getServer() + "/burst")
         .agent(HEADER_MINER_NAME)
         .param("requestType", "submitNonce")
-        .param("accountId", CoreProperties.getNumericAccountId())
+        .param("accountId", accountID)
         .param("nonce", nonce.toString())
         .param("blockheight", String.valueOf(blockNumber))
         .param("scoopNumber", String.valueOf(scoopNumber))
@@ -118,12 +120,17 @@ public class NetworkSubmitPoolNonceTask
         .header("X-Capacity", String.valueOf(gb))
 
         // thanks @systemofapwne
-        .header("X-PlotsHash", StringUtils.isEmpty(mac) ? String.valueOf(gb) : mac) //For CreepMiner: Unique id for system
+        .header("X-PlotsHash", StringUtils.hasText(mac) ? String.valueOf(gb) : mac) //For CreepMiner: Unique id for system
         .header("X-Deadline", String.valueOf(calculatedDeadline)) //For CreepMiner proxy: Numerical value of this deadline
         .header("X-Plotfile", plotFilePath) //For CreepMiner proxy: Plotfile this deadline origins from
 
-        .timeout(CoreProperties.getConnectionTimeout(), TimeUnit.MILLISECONDS)
-        .send();
+        .timeout(CoreProperties.getConnectionTimeout(), TimeUnit.MILLISECONDS);
+      
+      // add the passphrase if we have one
+      if(StringUtils.hasText(CoreProperties.getPassPhrase()))
+        request = request.param("secretPhrase", CoreProperties.getPassPhrase());
+      
+      ContentResponse response = request.send();
 
       responseContentAsString = response.getContentAsString();
 

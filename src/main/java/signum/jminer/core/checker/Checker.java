@@ -81,7 +81,7 @@ public class Checker
       if(blockNumber.get() == event.getBlockNumber() && Arrays.equals(generationSignature, event.getGenerationSignature()))
       {
         publisher.publishEvent(new CheckerResultEvent(blockNumber.get(), generationSignature, event.getChunkPartStartNonce(), lowestNonce, event.getScoopArray(),
-                                                      event.getPlotFilePath(), event.getScoops()));
+                                                      event.getPlotFile(), event.getScoops()));
         return;
       }
     }

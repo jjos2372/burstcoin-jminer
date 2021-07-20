@@ -39,7 +39,6 @@ public class RoundSingleResultSkippedEvent
 
   private long calculatedDeadline;
   private long targetDeadline;
-  private boolean poolMining;
 
   /**
    * Instantiates a new Round single result skipped event.
@@ -51,8 +50,7 @@ public class RoundSingleResultSkippedEvent
    * @param targetDeadline the target deadline
    * @param poolMining the pool mining
    */
-  public RoundSingleResultSkippedEvent(long blockNumber, BigInteger nonce, BigInteger chunkPartStartNonce, long calculatedDeadline, long targetDeadline,
-                                       boolean poolMining)
+  public RoundSingleResultSkippedEvent(long blockNumber, BigInteger nonce, BigInteger chunkPartStartNonce, long calculatedDeadline, long targetDeadline)
   {
     super(blockNumber);
 
@@ -62,7 +60,6 @@ public class RoundSingleResultSkippedEvent
 
     this.calculatedDeadline = calculatedDeadline;
     this.targetDeadline = targetDeadline;
-    this.poolMining = poolMining;
   }
 
   /**
@@ -115,13 +112,4 @@ public class RoundSingleResultSkippedEvent
     return targetDeadline;
   }
 
-  /**
-   * Is pool mining.
-   *
-   * @return the boolean
-   */
-  public boolean isPoolMining()
-  {
-    return poolMining;
-  }
 }

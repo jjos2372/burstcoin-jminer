@@ -190,13 +190,13 @@ public class ReaderLoadDriveTask
         else {
           BigInteger chunkPartStartNonce = plotFile.getStartnonce().add(BigInteger.valueOf(partNumber * partSizeNonces));
           final byte[] scoops = partBuffer;
-          publisher.publishEvent(new ReaderLoadedPartEvent(blockNumber, generationSignature, scoops, scoopArray, chunkPartStartNonce, plotFile.getFilePath().toString()));
+          publisher.publishEvent(new ReaderLoadedPartEvent(blockNumber, generationSignature, scoops, scoopArray, chunkPartStartNonce, plotFile));
 
           if(!CoreProperties.isUseOpenCl() && shaLibChecker.getLoadError() == null) {
             int lowestNonce = shaLibChecker.findLowest(generationSignature, scoops);
 
             publisher.publishEvent(new CheckerResultEvent(blockNumber, generationSignature, chunkPartStartNonce, lowestNonce, scoopArray,
-                plotFile.getFilePath().toString(), scoops));
+                plotFile, scoops));
           }
         }
       }

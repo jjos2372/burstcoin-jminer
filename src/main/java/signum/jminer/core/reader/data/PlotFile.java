@@ -41,12 +41,12 @@ public class PlotFile
   private Map<BigInteger, Long> chunkPartStartNonces;
 
   private Path filePath;
+  private String accountID;
   private Long chunkPartNonces;
   private int numberOfParts;
   private long numberOfChunks;
 
   private String filename;
-  private long address;
   private BigInteger startnonce;
   private long plots;
   private long staggeramt;
@@ -61,7 +61,7 @@ public class PlotFile
     this.chunkPartNonces = chunkPartNonces;
     this.filename = getFilename(filePath);
     String[] parts = filename.split("_");
-    this.address = Long.parseUnsignedLong(parts[0]);
+    this.accountID = parts[0];
     this.startnonce = new BigInteger(parts[1]);
     this.plots = Long.valueOf(parts[2]);
 
@@ -142,9 +142,9 @@ public class PlotFile
     return filename;
   }
 
-  public long getAddress()
+  public String getAccountID()
   {
-    return address;
+    return accountID;
   }
 
   public BigInteger getStartnonce()

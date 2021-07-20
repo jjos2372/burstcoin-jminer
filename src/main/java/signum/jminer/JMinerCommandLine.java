@@ -243,7 +243,7 @@ public class JMinerCommandLine
       public void onApplicationEvent(RoundSingleResultEvent event)
       {
         LOG.info(
-          "dl '" + event.getCalculatedDeadline() + "' send (" + (event.isPoolMining() ? "pool" : "solo") + ") [nonce '" + event.getNonce().toString() + "']");
+          "dl '" + event.getCalculatedDeadline() + "' send [nonce '" + event.getNonce().toString() + "']");
       }
     });
 

@@ -169,21 +169,16 @@ public class NetworkRequestMiningInfoTask
     defaultTargetDeadline = defaultTargetDeadline > 0 ? defaultTargetDeadline : Long.MAX_VALUE;
 
     // 'poolMining' and dynamic deadline
-    if(CoreProperties.isPoolMining() && CoreProperties.isDynamicTargetDeadline())
-    {
+    if(CoreProperties.isDynamicTargetDeadline()) {
       // please give feedback, in case this is not optimal
       long netDiff = 18325193796L / baseTarget;
       float plotSizeInTiB = plotSizeInByte / 1024 / 1024 / 1024 / 1024;
       targetDeadline = (long) (720 * netDiff / (plotSizeInTiB > 1.0 ? plotSizeInTiB : 1.0));
     }
-    // 'soloMining' or 'poolMining and force local deadline'
-    else if(!CoreProperties.isPoolMining() || CoreProperties.isForceLocalTargetDeadline())
-    {
+    else if(CoreProperties.isForceLocalTargetDeadline()) {
       targetDeadline = defaultTargetDeadline;
     }
-    // 'poolMining'
-    else
-    {
+    else {
       targetDeadline = deadlineProvidedByPool > 0 ? deadlineProvidedByPool : defaultTargetDeadline;
     }
     return targetDeadline;

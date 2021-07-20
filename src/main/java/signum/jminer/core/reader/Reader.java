@@ -105,26 +105,6 @@ public class Reader
   @PostConstruct
   protected void postConstruct()
   {
-    String numericAccountId;
-    if(CoreProperties.isPoolMining())
-    {
-      numericAccountId = CoreProperties.getNumericAccountId();
-    }
-    else
-    {
-      // calculate numericAccountId
-      numericAccountId = SignumCrypto.getInstance().getAddressFromPassphrase(CoreProperties.getPassPhrase()).getID();
-    }
-
-    if(!StringUtils.isEmpty(numericAccountId))
-    {
-      this.numericAccountId = numericAccountId;
-    }
-    else
-    {
-      LOG.error("init reader failed!");
-    }
-
     readerThreads = CoreProperties.getReaderThreads();
     capacityLookup = new HashMap<>();
     realCapacityLookup = new HashMap<>();

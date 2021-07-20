@@ -25,6 +25,8 @@ package signum.jminer.core.reader.event;
 
 import java.math.BigInteger;
 
+import signum.jminer.core.reader.data.PlotFile;
+
 public class ReaderLoadedPartEvent
 {
   private byte[] generationSignature;
@@ -33,21 +35,21 @@ public class ReaderLoadedPartEvent
 
   private byte[] scoops;
   private int[] scoopArray;
-  private String plotFilePath;
+  private PlotFile plotFile;
 
-  public ReaderLoadedPartEvent(long blockNumber, byte[] generationSignature, byte[] scoops, int[] scoopArray, BigInteger chunkPartStartNonce, String plotFilePath)
+  public ReaderLoadedPartEvent(long blockNumber, byte[] generationSignature, byte[] scoops, int[] scoopArray, BigInteger chunkPartStartNonce, PlotFile plotFile)
   {
     this.generationSignature = generationSignature;
     this.chunkPartStartNonce = chunkPartStartNonce;
     this.blockNumber = blockNumber;
     this.scoops = scoops;
     this.scoopArray = scoopArray;
-    this.plotFilePath = plotFilePath;
+    this.plotFile = plotFile;
   }
 
-  public String getPlotFilePath()
+  public PlotFile getPlotFile()
   {
-    return plotFilePath;
+    return plotFile;
   }
 
   public long getBlockNumber()

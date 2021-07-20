@@ -44,12 +44,10 @@ public class CoreProperties
   private static final boolean DEFAULT_USE_OPEN_CL = true;
   private static final int DEFAULT_PLATFORM_ID = 0;
   private static final int DEFAULT_DEVICE_ID = 0;
-  private static final boolean DEFAULT_POOL_MINING = true;
   private static final boolean DEFAULT_FORCE_LOCAL_TARGET_DEADLINE = false;
   private static final boolean DEFAULT_SUBMIT_ONLY_BEST_DEADLINE = true;
   private static final boolean DEFAULT_DYNAMIC_TARGET_DEADLINE = false;
   private static final long DEFAULT_TARGET_DEADLINE = Long.MAX_VALUE;
-  private static final String DEFAULT_SOLO_SERVER = "http://localhost:8125";
   private static final int DEFAULT_READ_PROGRESS_PER_ROUND = 9;
   private static final int DEFAULT_REFRESH_INTERVAL = 2000;
   private static final int DEFAULT_CONNECTION_TIMEOUT = 18000;
@@ -84,7 +82,6 @@ public class CoreProperties
   private static Integer winnerRetriesOnAsync;
   private static Long winnerRetryIntervalInMs;
   private static Boolean scanPathsEveryRound;
-  private static Boolean poolMining;
   private static Boolean forceLocalTargetDeadline;
   private static Boolean submitOnlyBestDeadline;
   private static Boolean dynamicTargetDeadline;
@@ -94,11 +91,8 @@ public class CoreProperties
   private static Boolean useOpenCl;
   private static Integer deviceId;
   private static Integer platformId;
-  private static String walletServer;
-  private static String numericAccountId;
-  private static String soloServer;
   private static String passPhrase;
-  private static String poolServer;
+  private static String server;
   private static Boolean byteUnitDecimal;
   private static Boolean listPlotFiles;
   private static Boolean showDriveInfo;
@@ -202,20 +196,6 @@ public class CoreProperties
   }
 
   /**
-   * Is pool mining.
-   *
-   * @return the boolean
-   */
-  public static boolean isPoolMining()
-  {
-    if(poolMining == null)
-    {
-      poolMining = asBoolean("poolMining", DEFAULT_POOL_MINING);
-    }
-    return poolMining;
-  }
-  
-  /**
    * Is force local target deadline (instead of using the pool's).
    *
    * @return the boolean
@@ -271,73 +251,17 @@ public class CoreProperties
    *
    * @return the pool server
    */
-  public static String getPoolServer()
+  public static String getServer()
   {
-    if(poolServer == null)
+    if(server == null)
     {
-      poolServer = asString("poolServer", null);
-      if(poolServer == null)
+      server = asString("server", null);
+      if(server == null)
       {
-        LOG.error("Error: property 'poolServer' is required for pool-mining!");
+        LOG.error("Error: property 'server' is required for mining!");
       }
     }
-    return poolServer;
-  }
-
-  /**
-   * Gets wallet server.
-   *
-   * @return the wallet server
-   */
-  public static String getWalletServer()
-  {
-    if(walletServer == null)
-    {
-      walletServer = asString("walletServer", "disabled");
-      if(isPoolMining() && walletServer.equals("disabled"))
-      {
-        LOG.info("Winner and PoolInfo feature disabled, property 'walletServer' undefined!");
-      }
-    }
-    return walletServer.equals("disabled") ? null : walletServer; //no default, to turn winner on and off.
-  }
-
-  /**
-   * Gets numeric account id.
-   *
-   * @return the numeric account id
-   */
-  public static String getNumericAccountId()
-  {
-    if(numericAccountId == null)
-    {
-      numericAccountId = asString("numericAccountId", null);
-      boolean poolMining = isPoolMining();
-      if(poolMining && numericAccountId == null)
-      {
-        LOG.error("Error: property 'numericAccountId' is required for pool-mining!");
-      }
-    }
-    return numericAccountId;
-  }
-
-  /**
-   * Gets solo server.
-   *
-   * @return the solo server
-   */
-  public static String getSoloServer()
-  {
-    if(soloServer == null)
-    {
-      soloServer = asString("soloServer", DEFAULT_SOLO_SERVER);
-      boolean poolMining = isPoolMining();
-      if(!poolMining && soloServer.equals(DEFAULT_SOLO_SERVER))
-      {
-        LOG.info("Default '" + DEFAULT_SOLO_SERVER + "' used for 'soloServer' property!");
-      }
-    }
-    return !StringUtils.isEmpty(soloServer) ? soloServer : DEFAULT_SOLO_SERVER;
+    return server;
   }
 
   /**
@@ -350,11 +274,6 @@ public class CoreProperties
     if(passPhrase == null)
     {
       passPhrase = asString("passPhrase", "noPassPhrase");
-      boolean poolMining = isPoolMining();
-      if(!poolMining && passPhrase.equals("noPassPhrase"))
-      {
-        LOG.error("Error: property 'passPhrase' is required for solo-mining!");
-      }
     }
     return passPhrase; // we deliver "noPassPhrase", should find no plots!
   }
@@ -537,7 +456,7 @@ public class CoreProperties
   {
     String booleanProperty = PROPS.containsKey(key) ? String.valueOf(PROPS.getProperty(key)) : null;
     Boolean value = null;
-    if(!StringUtils.isEmpty(booleanProperty))
+    if(!StringUtils.hasText(booleanProperty))
     {
       try
       {
@@ -555,7 +474,7 @@ public class CoreProperties
   {
     String integerProperty = PROPS.containsKey(key) ? String.valueOf(PROPS.getProperty(key)) : null;
     Integer value = null;
-    if(!StringUtils.isEmpty(integerProperty))
+    if(!StringUtils.hasText(integerProperty))
     {
       try
       {
@@ -573,7 +492,7 @@ public class CoreProperties
   {
     String integerProperty = PROPS.containsKey(key) ? String.valueOf(PROPS.getProperty(key)) : null;
     Long value = null;
-    if(!StringUtils.isEmpty(integerProperty))
+    if(!StringUtils.hasText(integerProperty))
     {
       try
       {
@@ -591,7 +510,7 @@ public class CoreProperties
   {
     String stringListProperty = PROPS.containsKey(key) ? String.valueOf(PROPS.getProperty(key)) : null;
     List<String> value = null;
-    if(!StringUtils.isEmpty(stringListProperty))
+    if(!StringUtils.hasText(stringListProperty))
     {
       try
       {
@@ -609,6 +528,6 @@ public class CoreProperties
   private static String asString(String key, String defaultValue)
   {
     String value = PROPS.containsKey(key) ? String.valueOf(PROPS.getProperty(key)) : defaultValue;
-    return StringUtils.isEmpty(value) ? defaultValue : value;
+    return StringUtils.hasText(value) ? defaultValue : value;
   }
 }

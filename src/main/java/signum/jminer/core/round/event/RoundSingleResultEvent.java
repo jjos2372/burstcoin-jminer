@@ -38,7 +38,6 @@ public class RoundSingleResultEvent
   private BigInteger chunkPartStartNonce;
 
   private long calculatedDeadline;
-  private boolean poolMining;
 
   /**
    * Instantiates a new Round single result event.
@@ -49,7 +48,7 @@ public class RoundSingleResultEvent
    * @param calculatedDeadline the calculated deadline
    * @param poolMining the pool mining
    */
-  public RoundSingleResultEvent(long blockNumber, BigInteger nonce, BigInteger chunkPartStartNonce, long calculatedDeadline, boolean poolMining)
+  public RoundSingleResultEvent(long blockNumber, BigInteger nonce, BigInteger chunkPartStartNonce, long calculatedDeadline)
   {
     super(blockNumber);
 
@@ -57,7 +56,6 @@ public class RoundSingleResultEvent
     this.blockNumber = blockNumber;
     this.chunkPartStartNonce = chunkPartStartNonce;
     this.calculatedDeadline = calculatedDeadline;
-    this.poolMining = poolMining;
   }
 
   /**
@@ -100,13 +98,4 @@ public class RoundSingleResultEvent
     return calculatedDeadline;
   }
 
-  /**
-   * Is pool mining.
-   *
-   * @return the boolean
-   */
-  public boolean isPoolMining()
-  {
-    return poolMining;
-  }
 }

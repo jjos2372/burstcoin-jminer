@@ -24,6 +24,8 @@ package signum.jminer.core.checker.event;
 
 import java.math.BigInteger;
 
+import signum.jminer.core.reader.data.PlotFile;
+
 /**
  * fired if chunk-part checked
  */
@@ -34,28 +36,28 @@ public class CheckerResultEvent
 
   private long blockNumber;
   private BigInteger result;
-  private String plotFilePath;
+  private PlotFile plotFile;
   private byte[] scoops;
   private int[] scoopArray;
   private int lowestNonce;
 
   public CheckerResultEvent(long blockNumber, byte[] generationSignature, BigInteger chunkPartStartNonce, int lowestNonce, int[] scoopArray,
-      String plotFilePath, byte[] scoops)
+      PlotFile plotFile, byte[] scoops)
   {
     this.generationSignature = generationSignature;
     this.chunkPartStartNonce = chunkPartStartNonce;
     this.blockNumber = blockNumber;
     this.lowestNonce = lowestNonce;
-    this.plotFilePath = plotFilePath;
+    this.plotFile = plotFile;
     this.scoops = scoops;
     this.scoopArray = scoopArray;
   }
 
-  public String getPlotFilePath()
+  public PlotFile getPlotFile()
   {
-    return plotFilePath;
+    return plotFile;
   }
-
+  
   public long getBlockNumber()
   {
     return blockNumber;
