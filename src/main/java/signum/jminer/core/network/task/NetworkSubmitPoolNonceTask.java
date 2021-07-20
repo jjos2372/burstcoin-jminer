@@ -113,6 +113,7 @@ public class NetworkSubmitPoolNonceTask
         .param("nonce", nonce.toString())
         .param("blockheight", String.valueOf(blockNumber))
         .param("scoopNumber", String.valueOf(scoopNumber))
+        .param("deadline", String.valueOf(calculatedDeadline))
         .header("X-Miner", HEADER_MINER_NAME)
         .header("X-Capacity", String.valueOf(gb))
 
