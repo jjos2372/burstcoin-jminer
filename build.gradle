@@ -29,8 +29,8 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 dependencies {
-  implementation 'org.springframework.boot:spring-boot-starter:2.1.18.RELEASE'
-  implementation 'org.springframework.boot:spring-boot-starter-jetty:2.1.18.RELEASE'
+  implementation 'org.springframework.boot:spring-boot-starter:2.5.2'
+  implementation 'org.springframework.boot:spring-boot-starter-jetty:2.5.2'
   
   implementation 'com.github.signum-network:signumj:abaddd6ecd'
   implementation 'com.fasterxml.jackson.core:jackson-core:2.12.4'
@@ -39,8 +39,6 @@ dependencies {
   
   implementation 'org.jocl:jocl-blast:1.5.2'
   implementation 'net.smacke:jaydio:0.1'
-  
-  
 }
 
 def details = versionDetails()

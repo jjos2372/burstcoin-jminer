@@ -1,9 +1,10 @@
-# burstcoin-jminer
-GPU assisted Proof of Capacity (PoC) Miner for Burstcoin (BURST)
+# signum-jminer
 
-1. edit 'jminer.properties' with text editor to configure miner
-2. ensure java8 (64bit) and openCL driver/sdk is installed (java9 will not work)
-3. execute 'java -jar -d64 -XX:+UseG1GC burstcoin-jminer-0.6.x-RELEASE.jar' or run the *.bat/*.sh file
+GPU/CPU optimized Signum miner.
+
+1. edit `jminer.properties` with text editor to configure
+2. ensure java v8+ (64bit) and openCL driver/sdk is installed (java9 will not work)
+3. execute the EXE file if on Windows and the SH file if on Linux/Mac
 
 > '-d64' to ensure 64bit java (remove for 32bit)
 > '-XX:+UseG1GC' to free memory after round finished.
@@ -107,30 +108,12 @@ format is inclusive protocol and port e.g. 'http://pool.com:8125'
 
     poolServer=http://pool.com
 
-### walletServer (optional)
-define local or online wallet, to receive and show last winner!
-if empty, winner feature will be just disabled.
-format is inclusive protocol and port e.g. 'http://localhost:8125'
-online use e.g. 'https://wallet.burst-team.us:8125'
-
-    walletServer=https://wallet.burst-team.us:8125
-
-### winnerRetriesOnAsync (default:4)
-number of retries to get winner from walletServer
-
-    winnerRetriesOnAsync=10
-
-### winnerRetryIntervalInMs (default:4000)
-time to wait until next retry to get winner from walletServer
-
-    winnerRetryIntervalInMs=250
-
 
 ## Solo-mining
 
 ### soloServer (default:http://localhost:8125)
 **WARN!** soloServer should be http://localhost:8125 or http://127.0.0.1:8125
-Solo means you send your PASS on commit results!
+Solo means you send your PASS when submitting results!
 
 **DO NOT** try to use a online wallet or pool as Server!
 
@@ -144,18 +127,16 @@ secretPhrase/password of solo mining burst-account
 
 
 ## OpenCL
-The miner uses openCL for most of the mining calculations, ensure it is setup correctly.
+The miner can use openCL for most of the mining calculations, ensure it is setup correctly.
 Instructions can be found e.g. here (thanks cryo):
 https://github.com/bhamon/gpuPlotGenerator/blob/master/README.md
 You could also use that instruction to find your platformId and deviceId if needed.
 Since version 0.4.4 all available platforms and devices are listed on startup.
 
-### useOpenCl (default:true)
-Since version 0.6.0 openCL is optional. Thanks harry1453! 
-Disable (useOpenCl=false) to only use CPU for mining.
-Following settings are only relevant if openCL is used.
+### useOpenCl (default:false)
+To enable openCL
 
-    default=false
+    useOpenCl=true
 
 ### platformId (default:0) 
 id of openCL platform on your system. one platform may have multiple
@@ -188,7 +169,7 @@ false value will disable this feature
 
 ### connectionTimeout (default:12000)
 increase the 'connectionTimeout' on network problems. this timeout is used for all network requests.
-if you use pool or online-wallet, the 12 sec. default may cause timeout on committing nonces 
+if you use pool or online-wallet, the 12 sec. default may cause timeout on submitting nonces 
 or getting mining info etc.
 
     connectionTimeout=12000
@@ -274,7 +255,7 @@ e.g. play with +/- 160000 steps
 
 ### readerThreads (default:0)
 normally '0' means, the miner takes one thread per drive (plotPath) this is recommend.
-choosing a other number of 'readerThreads' can be useful on memory issues.
+choosing another number of 'readerThreads' can be useful on memory issues.
 For example, if you mine on 4 drives (plotPaths), you can reduce the memory usage
 by setting 'readerThreads=2', this will reduce mining speed but save memory.
 
