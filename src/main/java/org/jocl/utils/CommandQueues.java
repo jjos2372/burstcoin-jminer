@@ -92,6 +92,7 @@ public class CommandQueues
    *
    * @return The command queue
    */
+  @SuppressWarnings("deprecation")
   private static cl_command_queue create(
     cl_context context, cl_device_id device, long properties)
   {
@@ -139,6 +140,7 @@ public class CommandQueues
    *
    * @return The list of command queues
    */
+  @SuppressWarnings("deprecation")
   private static List<cl_command_queue> create(
     cl_context context, List<cl_device_id> devices, long properties)
   {
