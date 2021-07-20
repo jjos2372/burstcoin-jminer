@@ -13,6 +13,7 @@ buildscript {
 plugins {
     id "distribution"
     id 'com.palantir.git-version' version '0.12.2'
+    id 'edu.sc.seis.launch4j' version '2.4.6'
 }
 
 repositories {
@@ -60,6 +61,20 @@ jar {
 
 shadowJar.dependsOn versionProp
 
+createExe {
+    outfile = 'jminer.exe'
+    // icon = "${projectDir}/dist/jminer.ico"
+    jreMinVersion = '1.8.0'
+    copyright = 'signum.network'
+    companyName = 'https://signum.network'
+    textVersion = details.lastTag
+    dontWrapJar = 'true'
+    
+    mainClassName = 'signum.jminer.JMinerApplication'
+    copyConfigurable = project.tasks.shadowJar.outputs.files
+    jar = "lib/${project.tasks.shadowJar.archiveName}"
+}
+
 distributions {
     main {
         distributionBaseName = "signum-jminer-${details.lastTag}"
@@ -68,6 +83,8 @@ distributions {
             from 'LICENSE.md'
             from 'README.md'
             from project.tasks.shadowJar.outputs.files
+            from "${project.buildDir}/launch4j/jminer.exe"
+            from 'jminer.sh'
             
             rename '(.+).default(.+)', '$1$2'
         }
