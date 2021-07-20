@@ -51,8 +51,7 @@ public class CoreProperties
   private static final int DEFAULT_READ_PROGRESS_PER_ROUND = 9;
   private static final int DEFAULT_REFRESH_INTERVAL = 2000;
   private static final int DEFAULT_CONNECTION_TIMEOUT = 18000;
-  private static final int DEFAULT_WINNER_RETRIES_ON_ASYNC = 4;
-  private static final int DEFAULT_WINNER_RETRY_INTERVAL_IN_MS = 4000;
+  private static final int DEFAULT_DEADLINE_RETRY_LIMIT = 4;
   private static final boolean DEFAULT_SCAN_PATHS_EVERY_ROUND = true;
   private static final boolean DEFAULT_BYTE_UNIT_DECIMAL = true;
   private static final boolean DEFAULT_LIST_PLOT_FILES = false;
@@ -78,9 +77,8 @@ public class CoreProperties
 
   private static Integer readProgressPerRound;
   private static Long refreshInterval;
+  private static Integer deadlineRetryLimit;
   private static Long connectionTimeout;
-  private static Integer winnerRetriesOnAsync;
-  private static Long winnerRetryIntervalInMs;
   private static Boolean scanPathsEveryRound;
   private static Boolean forceLocalTargetDeadline;
   private static Boolean submitOnlyBestDeadline;
@@ -153,32 +151,17 @@ public class CoreProperties
   }
 
   /**
-   * Gets winner retries on async.
+   * Gets deadline retry limit.
    *
-   * @return the winner retries on async
+   * @return the deadline retry limit
    */
-  public static int getWinnerRetriesOnAsync()
+  public static int getDeadlineRetryLimit()
   {
-    if(winnerRetriesOnAsync == null)
+    if(deadlineRetryLimit == null)
     {
-
-      winnerRetriesOnAsync = asInteger("winnerRetriesOnAsync", DEFAULT_WINNER_RETRIES_ON_ASYNC);
+      deadlineRetryLimit = asInteger("deadlineRetryLimit", DEFAULT_DEADLINE_RETRY_LIMIT);
     }
-    return winnerRetriesOnAsync;
-  }
-
-  /**
-   * Gets winner retry interval in ms.
-   *
-   * @return the winner retry interval in ms
-   */
-  public static long getWinnerRetryIntervalInMs()
-  {
-    if(winnerRetryIntervalInMs == null)
-    {
-      winnerRetryIntervalInMs = asLong("winnerRetryIntervalInMs", DEFAULT_WINNER_RETRY_INTERVAL_IN_MS);
-    }
-    return winnerRetryIntervalInMs;
+    return deadlineRetryLimit;
   }
 
   /**

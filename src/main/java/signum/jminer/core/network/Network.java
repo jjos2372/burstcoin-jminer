@@ -46,6 +46,7 @@ import signum.jminer.core.network.event.NetworkStateChangeEvent;
 import signum.jminer.core.network.task.NetworkRequestMiningInfoTask;
 import signum.jminer.core.network.task.NetworkSubmitNonceTask;
 import signum.jminer.core.reader.Reader;
+import signum.jminer.core.reader.data.PlotFile;
 import signum.jminer.core.reader.data.Plots;
 
 @Component
@@ -123,13 +124,17 @@ public class Network
     }
   }
 
-  public void submitResult(long blockNumber, long calculatedDeadline, String accountID, BigInteger nonce, int scoopNumber, BigInteger chunkPartStartNonce, long totalCapacity,
-                           BigInteger result, String plotFilePath)
+  public void submitResult(long blockNumber, long calculatedDeadline, BigInteger nonce, int scoopNumber, BigInteger chunkPartStartNonce, long totalCapacity,
+                           BigInteger result, PlotFile plotFile)
   {
     NetworkSubmitNonceTask networkSubmitPoolNonceTask = context.getBean(NetworkSubmitNonceTask.class);
-    networkSubmitPoolNonceTask.init(blockNumber, generationSignature, accountID, nonce, scoopNumber, chunkPartStartNonce, calculatedDeadline,
-        totalCapacity, result, plotFilePath, mac);
-    networkPool.execute(networkSubmitPoolNonceTask);
+    networkSubmitPoolNonceTask.init(blockNumber, generationSignature, plotFile.getAccountID(), nonce, scoopNumber, chunkPartStartNonce, calculatedDeadline,
+        totalCapacity, result, plotFile.getFilePath().toString(), mac);
+    submitResult(networkSubmitPoolNonceTask);
+  }
+
+  public void submitResult(NetworkSubmitNonceTask task) {
+    networkPool.execute(task);
   }
 
   public void startMining()

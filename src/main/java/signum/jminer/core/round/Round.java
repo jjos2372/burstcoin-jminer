@@ -87,7 +87,7 @@ public class Round
   private long bestConfirmedDeadline;
 
   // cache for next lowest
-  private CheckerResultEvent queuedEvent;
+  private int deadlineRetryCounter;
   private BigInteger lowestConfirmed;
 
   private Set<BigInteger> runningChunkPartStartNonces;
@@ -125,7 +125,7 @@ public class Round
     roundStartDate = new Date();
     lowestHit = BigInteger.valueOf(Long.MAX_VALUE);
     lowestConfirmed = BigInteger.valueOf(Long.MAX_VALUE);
-    queuedEvent = null;
+    deadlineRetryCounter = 0;
     bestConfirmedDeadline = Long.MAX_VALUE;
   }
 
@@ -237,8 +237,8 @@ public class Round
                                       .divide(MiningPlot.SCOOPS_PER_PLOT_BIGINT)
                                       .mod(numberOfScoops).intValue() ];
 
-        network.submitResult(blockNumber, calculatedDeadline, event.getPlotFile().getAccountID(), nonce, scoopNumber, event.getChunkPartStartNonce(), plots.getSize(),
-            hit, event.getPlotFile().getFilePath().toString());
+        network.submitResult(blockNumber, calculatedDeadline, nonce, scoopNumber, event.getChunkPartStartNonce(), plots.getSize(),
+            hit, event.getPlotFile());
 
         // ui event
         publisher.publishEvent(new RoundSingleResultEvent(event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline));
@@ -252,19 +252,8 @@ public class Round
     if(isCurrentRound(event.getBlockNumber(), event.getGenerationSignature()))
     {
       // if result if lower than lowestCommitted, update lowestCommitted
-      if(event.getResult() != null && event.getResult().compareTo(lowestConfirmed) < 0)
-      {
+      if(event.getResult() != null && event.getResult().compareTo(lowestConfirmed) < 0) {
         lowestConfirmed = event.getResult();
-
-        // if queuedLowest exist and is higher than lowest confirmed, remove queued
-        if(queuedEvent != null && lowestConfirmed.compareTo(queuedEvent.getResult()) < 0)
-        {
-          BigInteger dl = queuedEvent.getResult().divide(BigInteger.valueOf(baseTarget));
-          LOG.debug("dl '" + dl + "' removed from queue");
-
-          runningChunkPartStartNonces.remove(queuedEvent.getChunkPartStartNonce());
-          queuedEvent = null;
-        }
       }
 
       runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
@@ -280,15 +269,18 @@ public class Round
   @EventListener
   public void handleMessage(NetworkResultErrorEvent event)
   {
-    if(isCurrentRound(event.getBlockNumber(), event.getGenerationSignature()))
-    {
-      // in case that queued result is lower than committedLowest, commit queued again.
-      if(queuedEvent != null && lowestConfirmed.compareTo(queuedEvent.getResult()) < 0)
-      {
-        LOG.info("submit queued dl ...");
-        handleMessage(queuedEvent);
-
-        queuedEvent = null;
+    if(isCurrentRound(event.getBlockNumber(), event.getGenerationSignature())) {
+      if(event.getResult()!=null && event.getResult().compareTo(lowestConfirmed) < 0 && event.getStrangeDeadline() >= 0) {
+        // we need to send again this one since it was not delivered
+        deadlineRetryCounter++;
+        if(deadlineRetryCounter < CoreProperties.getDeadlineRetryLimit()) {
+          network.submitResult(event.getTask());
+          
+          return;          
+        }
+        else {
+          LOG.info("retry limit reached");
+        }
       }
 
       runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
@@ -316,12 +308,6 @@ public class Round
       if(runningChunkPartStartNonces.isEmpty())
       {
         onRoundFinish(blockNumber);
-      }
-      // commit queued if exists ... and it is the only remaining in runningChunkPartStartNonces
-      else if(queuedEvent != null && runningChunkPartStartNonces.size() == 1 && runningChunkPartStartNonces.contains(queuedEvent.getChunkPartStartNonce()))
-      {
-        handleMessage(queuedEvent);
-        queuedEvent = null;
       }
     }
   }

@@ -24,6 +24,8 @@ package signum.jminer.core.network.event;
 
 import org.springframework.context.ApplicationEvent;
 
+import signum.jminer.core.network.task.NetworkSubmitNonceTask;
+
 import java.math.BigInteger;
 
 /**
@@ -42,6 +44,7 @@ public class NetworkResultErrorEvent
 
   private BigInteger chunkPartStartNonce;
   private BigInteger result;
+  private NetworkSubmitNonceTask task;
 
   /**
    * Instantiates a new Network result error event.
@@ -52,10 +55,11 @@ public class NetworkResultErrorEvent
    * @param strangeDeadline the strange deadline
    * @param chunkPartStartNonce the chunk part start nonce
    */
-  public NetworkResultErrorEvent(long blockNumber, byte[] generationSignature, BigInteger nonce, long calculatedDeadline, long strangeDeadline, BigInteger chunkPartStartNonce, BigInteger result)
+  public NetworkResultErrorEvent(NetworkSubmitNonceTask task, long blockNumber, byte[] generationSignature, BigInteger nonce, long calculatedDeadline, long strangeDeadline, BigInteger chunkPartStartNonce, BigInteger result)
   {
     super(blockNumber);
 
+    this.task = task;
     this.blockNumber = blockNumber;
     this.generationSignature = generationSignature;
     this.nonce = nonce;
@@ -64,6 +68,10 @@ public class NetworkResultErrorEvent
 
     this.chunkPartStartNonce = chunkPartStartNonce;
     this.result = result;
+  }
+  
+  public NetworkSubmitNonceTask getTask() {
+    return task;
   }
 
   /**

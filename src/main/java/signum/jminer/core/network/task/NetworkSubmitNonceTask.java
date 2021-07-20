@@ -140,7 +140,7 @@ public class NetworkSubmitNonceTask
         LOG.info("dl '" + calculatedDeadline + "' not accepted by pool!");
         LOG.debug("Error code: '" + error.getErrorCode() + "'.");
         LOG.debug("Error description: '" + error.getErrorDescription() + "'.");
-        publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/,
+        publisher.publishEvent(new NetworkResultErrorEvent(this, blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/,
                                                            chunkPartStartNonce, result));
       }
       else
@@ -157,14 +157,14 @@ public class NetworkSubmitNonceTask
           else
           {
             // in general if deadlines do not match, we end up in errorCode above
-            publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, generationSignature, nonce, calculatedDeadline, result.getDeadline(),
+            publisher.publishEvent(new NetworkResultErrorEvent(this, blockNumber, generationSignature, nonce, calculatedDeadline, result.getDeadline(),
                                                                chunkPartStartNonce, this.result));
           }
         }
         else
         {
           LOG.warn("Error: Submit nonce to pool not successful: " + response.getContentAsString());
-          publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/,
+          publisher.publishEvent(new NetworkResultErrorEvent(this, blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/,
                                                              chunkPartStartNonce, this.result));
         }
       }
@@ -173,7 +173,7 @@ public class NetworkSubmitNonceTask
     {
       LOG.warn("Nonce was submitted to pool, but not confirmed ... caused by connectionTimeout,"
                + " currently '" + (CoreProperties.getConnectionTimeout() / 1000) + " sec.' try increasing it!");
-      publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/,
+      publisher.publishEvent(new NetworkResultErrorEvent(this, blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/,
                                                          chunkPartStartNonce, this.result));
     }
     catch(ExecutionException e)
@@ -193,21 +193,21 @@ public class NetworkSubmitNonceTask
         LOG.warn("Error: Failed to submit nonce to pool due ExecutionException.");
         LOG.debug("ExecutionException: " + e.getMessage(), e);
       }
-      publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/,
+      publisher.publishEvent(new NetworkResultErrorEvent(this, blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/,
                                                          chunkPartStartNonce, this.result));
     }
     catch(JsonMappingException e)
     {
       LOG.warn("Error: On submit nonce to pool, could not parse response: '" + responseContentAsString + "'");
       LOG.debug("JSONMappingException: " + e.getMessage(), e);
-      publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/,
+      publisher.publishEvent(new NetworkResultErrorEvent(this, blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/,
                                                          chunkPartStartNonce, this.result));
     }
     catch(Exception e)
     {
       LOG.warn("Error: Failed to submit nonce to pool due Exception.");
       LOG.debug("Exception: " + e.getMessage(), e);
-      publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/,
+      publisher.publishEvent(new NetworkResultErrorEvent(this, blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/,
                                                          chunkPartStartNonce, this.result));
     }
   }
