@@ -45,7 +45,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import signum.jminer.core.CoreProperties;
 import signum.jminer.core.network.event.NetworkResultErrorEvent;
@@ -58,7 +57,6 @@ import signum.jminer.core.reader.event.ReaderLoadedPartEvent;
 import signum.jminer.core.reader.event.ReaderProgressChangedEvent;
 import signum.jminer.core.reader.task.ReaderLoadDriveTask;
 import signum.jminer.core.round.event.RoundStoppedEvent;
-import signumj.crypto.SignumCrypto;
 
 /**
  * The type Reader.
@@ -71,9 +69,6 @@ public class Reader
 
   private final ApplicationContext context;
   private final ThreadPoolTaskExecutor readerPool;
-
-  // config
-  private String numericAccountId;
 
   // data
   public static volatile AtomicLong blockNumber;
@@ -193,7 +188,7 @@ public class Reader
   {
     if(CoreProperties.isScanPathsEveryRound() || plots == null)
     {
-      plots = new Plots(numericAccountId);
+      plots = new Plots();
     }
     return plots;
   }

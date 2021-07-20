@@ -26,6 +26,7 @@ package signum.jminer.core.reader.data;
 import signum.jminer.core.CoreProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -48,11 +49,11 @@ public class Plots
   private Collection<PlotDrive> plotDrives;
   private Map<BigInteger, Long> chunkPartStartNonces;
 
-  public Plots(String numericAccountId)
+  public Plots()
   {
     plotDrives = new HashSet<>();
     chunkPartStartNonces = new HashMap<>();
-    Map<String, Collection<Path>> plotFilesLookup = collectPlotFiles(CoreProperties.getPlotPaths(), numericAccountId);
+    Map<String, Collection<Path>> plotFilesLookup = collectPlotFiles(CoreProperties.getPlotPaths());
     for(Map.Entry<String, Collection<Path>> entry : plotFilesLookup.entrySet())
     {
       PlotDrive plotDrive = new PlotDrive(entry.getKey(), entry.getValue(), CoreProperties.getChunkPartNonces());
@@ -79,7 +80,7 @@ public class Plots
     return plotDrives;
   }
 
-  private static Map<String, Collection<Path>> collectPlotFiles(List<String> plotDirectories, String numericAccountId)
+  private static Map<String, Collection<Path>> collectPlotFiles(List<String> plotDirectories)
   {
     Map<String, Collection<Path>> plotFilesLookup = new HashMap<>();
     for(String plotDirectory : plotDirectories)
@@ -90,8 +91,8 @@ public class Plots
         List<Path> plotFilePaths = new ArrayList<>();
         for(Path plotFilePath : plotFilesStream)
         {
-          if(plotFilePath.toString().contains(numericAccountId))
-          {
+          int countMatches = StringUtils.countOccurrencesOf(plotFilePath.toString(), "_");
+          if(countMatches == 2) {
             plotFilePaths.add(plotFilePath);
           }
         }

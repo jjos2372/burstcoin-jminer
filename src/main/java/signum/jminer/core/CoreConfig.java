@@ -60,7 +60,7 @@ public class CoreConfig
   @Bean
   public HttpClient httpClient()
   {
-    SslContextFactory sslContextFactory = new SslContextFactory(null);
+    SslContextFactory sslContextFactory = new SslContextFactory.Client();
     sslContextFactory.setEndpointIdentificationAlgorithm("none");
 
     HttpClient client = new HttpClient(sslContextFactory);
