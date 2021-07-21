@@ -34,7 +34,7 @@ public class MiningInfo
   private String numberOfScoopsPerBlock;
 
   // only if pool
-  private long targetDeadline;
+  private Long targetDeadline;
 
   public String getGenerationSignature()
   {
@@ -56,7 +56,7 @@ public class MiningInfo
     return numberOfScoopsPerBlock;
   }
 
-  public long getTargetDeadline()
+  public Long getTargetDeadline()
   {
     return targetDeadline;
   }

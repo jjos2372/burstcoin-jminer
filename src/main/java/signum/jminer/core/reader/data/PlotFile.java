@@ -22,16 +22,18 @@
 
 package signum.jminer.core.reader.data;
 
-import signum.jminer.core.CoreProperties;
-import signumj.crypto.plot.impl.MiningPlot;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import signum.jminer.core.CoreProperties;
+import signum.jminer.core.reader.task.ReaderLoadDriveTask.RandomAccessFileWrapper;
+import signumj.crypto.SignumCrypto;
+import signumj.crypto.plot.impl.MiningPlot;
 
 public class PlotFile
 {
@@ -107,6 +109,51 @@ public class PlotFile
           LOG.warn("possible overlapping plot-file '" + filePath + "', please check your plots.");
         }
       }
+    }
+  }
+  
+  public void check() {
+    if(pocVersion != PocVersion.POC_2) {
+      LOG.warn("checking only PoC2 plot files '{}' was skipped", filePath.getFileName().toString());
+      return;
+    }
+    
+    SignumCrypto crypto = SignumCrypto.getInstance();
+    long account = Long.parseUnsignedLong(accountID);
+    byte[] buffer = new byte[MiningPlot.PLOT_SIZE];
+    
+    try (RandomAccessFileWrapper sbc = new RandomAccessFileWrapper(getFilePath())) {
+
+      // checking at 8 different positions for nonces and also scoops
+      int N = 8;
+      int[] scoopArray = new int[1];
+      byte[] scoopRead = new byte[MiningPlot.SCOOP_SIZE];
+      for (int i = 0; i < N; i++) {
+        long nonceOffset = i * (plots-1) / (N - 1);
+        long nonce = startnonce.longValue() + nonceOffset;
+        crypto.plotNonce(account, nonce, (byte)2, buffer, 0);
+
+        // and check a N scoops
+        for (int j = 0; j < N; j++) {
+          scoopArray[0] = j * (MiningPlot.SCOOPS_PER_PLOT-1) / (N -1);
+          
+          sbc.seek((scoopArray[0]*plots + nonceOffset)*MiningPlot.SCOOP_SIZE);
+          sbc.read(scoopRead, 0, MiningPlot.SCOOP_SIZE);
+          
+          for (int k = 0; k < MiningPlot.SCOOP_SIZE; k++) {
+            if(scoopRead[k] != buffer[scoopArray[0] * MiningPlot.SCOOP_SIZE + k]) {
+              LOG.error("plot '{}' is invalid, please replot", getFilename());
+              return;
+            }
+          }
+        }
+      }
+      LOG.debug("plot '{}' checked", getFilename());
+      sbc.close();
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+      LOG.error("Exception while checking plot '{}': {}", getFilename(), e.getMessage());
     }
   }
 

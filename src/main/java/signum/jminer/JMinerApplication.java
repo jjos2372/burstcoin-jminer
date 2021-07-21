@@ -41,7 +41,7 @@ public class JMinerApplication
   {    
     // TODO: config file by argument
     CoreProperties.init("jminer.properties");
-
+    
     // overwritten by application.properties
     Map<String, Object> properties = new HashMap<>();
     if(CoreProperties.isWriteLogFile())
@@ -56,6 +56,10 @@ public class JMinerApplication
     if(CoreProperties.getLogPatternFile() != null)
     {
       properties.put("logging.pattern.file", CoreProperties.getLogPatternFile());
+    }
+    
+    for (String key : properties.keySet()) {
+      System.setProperty(key, properties.get(key).toString());
     }
     
     new SpringApplicationBuilder(JMinerApplication.class)

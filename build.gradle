@@ -11,9 +11,10 @@ buildscript {
 }
 
 plugins {
-    id "distribution"
+    id 'distribution'
     id 'com.palantir.git-version' version '0.12.2'
     id 'edu.sc.seis.launch4j' version '2.4.6'
+    id 'org.springframework.boot' version '2.5.2'
 }
 
 repositories {
@@ -23,7 +24,7 @@ repositories {
 }
 
 apply plugin: 'java'
-apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'io.spring.dependency-management'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -38,7 +39,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-annotations:2.12.4'
   
   implementation 'org.jocl:jocl-blast:1.5.2'
-  implementation 'net.smacke:jaydio:0.1'
+  implementation 'net.smacke:jaydio:0.1'  
 }
 
 def details = versionDetails()
@@ -49,15 +50,10 @@ task versionProp()  {
     }
 }
 
-task buildJar(dependsOn: shadowJar)
-
-jar {
-    manifest {
-        attributes 'Main-Class': 'signum.jminer.JMinerApplication'
-    }
+bootJar {
+  mainClass = 'signum.jminer.JMinerApplication'
+  dependsOn versionProp
 }
-
-shadowJar.dependsOn versionProp
 
 createExe {
     outfile = 'jminer.exe'
@@ -69,8 +65,8 @@ createExe {
     dontWrapJar = 'true'
     
     mainClassName = 'signum.jminer.JMinerApplication'
-    copyConfigurable = project.tasks.shadowJar.outputs.files
-    jar = "lib/${project.tasks.shadowJar.archiveName}"
+    copyConfigurable = project.tasks.bootJar.outputs.files
+    jar = "lib/${project.tasks.bootJar.archiveName}"
 }
 
 distributions {
@@ -80,7 +76,7 @@ distributions {
             from 'jminer.default.properties'
             from 'LICENSE.md'
             from 'README.md'
-            from project.tasks.shadowJar.outputs.files
+            from project.tasks.bootJar.outputs.files
             from "${project.buildDir}/launch4j/jminer.exe"
             from 'jminer.sh'
             

@@ -138,7 +138,7 @@ public class ReaderLoadDriveTask
    * TODO: add optimized support for other platforms.
    *
    */
-  static class RandomAccessFileWrapper implements Closeable {
+  public static class RandomAccessFileWrapper implements Closeable {
     DirectRandomAccessFile dra;
     RandomAccessFile ra;
     
@@ -179,7 +179,7 @@ public class ReaderLoadDriveTask
 
       for(int partNumber = 0; partNumber < plotFile.getNumberOfParts(); partNumber++) {
         for (int scoopNumberPosition = 0; scoopNumberPosition < scoopArray.length; scoopNumberPosition++) {
-          readPart(plotFile, sbc, partSizeNonces, partBuffer, partNumber, scoopNumberPosition);
+          readPart(plotFile, sbc, partSizeNonces, partBuffer, partNumber, scoopNumberPosition, scoopArray);
         }
 
         if(Reader.blockNumber.get() != blockNumber || !Arrays.equals(Reader.generationSignature, generationSignature)) {
@@ -213,13 +213,14 @@ public class ReaderLoadDriveTask
     }
     catch(IOException e)
     {
+      e.printStackTrace();
       LOG.error("IOException in: " + plotFile.getFilePath().toString() + " -> " + e.getMessage());
     }
     return false;
   }
   
-  private void readPart(PlotFile plotFile, RandomAccessFileWrapper sbc, int partSizeNonces,
-      byte []partBuffer, int partNumber, int scoopNumberPosition) throws IOException {
+  public static void readPart(PlotFile plotFile, RandomAccessFileWrapper sbc, int partSizeNonces,
+      byte []partBuffer, int partNumber, int scoopNumberPosition, int[] scoopArray) throws IOException {
     int noncesToSwitchScoop = MiningPlot.SCOOPS_PER_PLOT/scoopArray.length;
     int bytesToSwitchScoop = MiningPlot.PLOT_SIZE/scoopArray.length;
 

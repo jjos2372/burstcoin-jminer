@@ -27,6 +27,7 @@ import signum.jminer.core.network.Network;
 import signum.jminer.core.network.event.NetworkResultConfirmedEvent;
 import signum.jminer.core.network.event.NetworkResultErrorEvent;
 import signum.jminer.core.reader.Reader;
+import signum.jminer.core.reader.data.Plots;
 import signum.jminer.core.reader.event.ReaderCorruptFileEvent;
 import signum.jminer.core.reader.event.ReaderDriveFinishEvent;
 import signum.jminer.core.reader.event.ReaderDriveInterruptedEvent;
@@ -88,6 +89,14 @@ public class JMinerCommandLine
 
     LOG.info("signum-jminer {} started", version);
     LOG.info("source code available at https://github.com/signum-network");
+    
+    // initialize drives/plotfiles
+    Reader reader = context.getBean(Reader.class);
+    Plots plots = reader.getPlots();
+    if(CoreProperties.isCheckPlotFiles()) {
+      LOG.info("checking your plot files...");
+      plots.checkPlotFiles();
+    }
 
     // start mining
     Network network = context.getBean(Network.class);
@@ -236,7 +245,7 @@ public class JMinerCommandLine
     {
       @Override
       public void onApplicationEvent(RoundSingleResultEvent event) {
-        LOG.info("deadline sent: account={}, nonce={}, deadline={}", event.getCheckerResultEvent().getPlotFile().getAccountID(),
+        LOG.info("deadline submitted: account={}, nonce={}, deadline={}", event.getCheckerResultEvent().getPlotFile().getAccountID(),
             event.getNonce(), event.getCalculatedDeadline());
       }
     });
@@ -264,7 +273,7 @@ public class JMinerCommandLine
       @Override
       public void onApplicationEvent(NetworkResultErrorEvent event)
       {
-        LOG.info("deadline rejected: account={}, nonce={}, deadline={}, returned deadline={}",
+        LOG.error("deadline rejected: account={}, nonce={}, deadline={}, returned deadline={}",
             event.getTask().getAcountID(), event.getNonce(), event.getCalculatedDeadline(), event.getStrangeDeadline());
         LOG.debug("strange dl result '" + event.getStrangeDeadline() + "', "
                   + "calculated '" + (event.getCalculatedDeadline() > 0 ? event.getCalculatedDeadline() : "N/A") + "' "

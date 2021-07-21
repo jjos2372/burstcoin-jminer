@@ -45,9 +45,7 @@ import signum.jminer.core.CoreProperties;
 import signum.jminer.core.network.event.NetworkStateChangeEvent;
 import signum.jminer.core.network.task.NetworkRequestMiningInfoTask;
 import signum.jminer.core.network.task.NetworkSubmitNonceTask;
-import signum.jminer.core.reader.Reader;
 import signum.jminer.core.reader.data.PlotFile;
-import signum.jminer.core.reader.data.Plots;
 
 @Component
 @Scope("singleton")
@@ -63,7 +61,6 @@ public class Network
   private byte[] generationSignature;
   private int numberOfScoopsPerBlock;
   private String mac; // unique system id
-  private Plots plots;
 
   @Autowired
   public Network(ApplicationContext context, @Qualifier(value = "networkPool") SimpleAsyncTaskExecutor networkPool)
@@ -75,10 +72,6 @@ public class Network
   @PostConstruct
   protected void postConstruct()
   {
-    // init drives/plotfiles ... ensure miner starts after that
-    Reader reader = context.getBean(Reader.class);
-    plots = reader.getPlots();
-
     mac = getMac();
     timer = new Timer();
   }
@@ -119,7 +112,7 @@ public class Network
     if(StringUtils.hasText(server))
     {
       NetworkRequestMiningInfoTask networkRequestMiningInfoTask = context.getBean(NetworkRequestMiningInfoTask.class);
-      networkRequestMiningInfoTask.init(server, blockNumber, generationSignature, numberOfScoopsPerBlock, plots.getSize());
+      networkRequestMiningInfoTask.init(server, blockNumber, generationSignature, numberOfScoopsPerBlock);
       networkPool.execute(networkRequestMiningInfoTask);
     }
   }

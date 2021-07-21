@@ -33,6 +33,7 @@ import java.math.BigInteger;
 import java.nio.file.DirectoryIteratorException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -70,7 +71,7 @@ public class Plots
       }
       else
       {
-        LOG.info("No plotfiles found at '" + plotDrive.getDirectory() + "' ... will be ignored.");
+        LOG.info("no plotfiles found at '" + plotDrive.getDirectory() + "' ... will be ignored.");
       }
     }
   }
@@ -98,9 +99,11 @@ public class Plots
         }
         plotFilesLookup.put(plotDirectory, plotFilePaths);
       }
-      catch(IOException | DirectoryIteratorException e)
-      {
-        LOG.error(e.getMessage());
+      catch(NoSuchFileException e) {
+        LOG.error("plot path not found: {}", e.getMessage());        
+      }
+      catch(IOException | DirectoryIteratorException e) {
+        LOG.error("plot path error: {}", e.getMessage());
       }
     }
     return plotFilesLookup;
@@ -124,6 +127,14 @@ public class Plots
       for(PlotFile plotFile : plotDrive.getPlotFiles())
       {
         System.out.println(plotFile.getFilePath());
+      }
+    }
+  }
+  
+  public void checkPlotFiles() {
+    for(PlotDrive plotDrive : getPlotDrives()) {
+      for(PlotFile plotFile : plotDrive.getPlotFiles()) {
+        plotFile.check();
       }
     }
   }

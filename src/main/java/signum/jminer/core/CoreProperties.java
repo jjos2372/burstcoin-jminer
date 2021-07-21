@@ -79,6 +79,7 @@ public class CoreProperties
   private static Long refreshInterval;
   private static Integer deadlineRetryLimit;
   private static Long connectionTimeout;
+  private static Boolean checkPlotFiles;
   private static Boolean scanPathsEveryRound;
   private static Boolean forceLocalTargetDeadline;
   private static Boolean submitOnlyBestDeadline;
@@ -176,6 +177,18 @@ public class CoreProperties
       scanPathsEveryRound = asBoolean("scanPathsEveryRound", DEFAULT_SCAN_PATHS_EVERY_ROUND);
     }
     return scanPathsEveryRound;
+  }
+
+  /**
+   * @return true if plot files should be checked on start
+   */
+  public static boolean isCheckPlotFiles()
+  {
+    if(checkPlotFiles == null)
+    {
+      checkPlotFiles = asBoolean("checkPlotFiles", false);
+    }
+    return checkPlotFiles;
   }
 
   /**
@@ -421,7 +434,7 @@ public class CoreProperties
   {
     if(logPatternConsole == null)
     {
-      logPatternConsole = asString("logPatternConsole", "%-5level%d{HH:mm:ss} | %msg%n");
+      logPatternConsole = asString("logPatternConsole", "%-6level%d{HH:mm:ss} | %msg%n");
     }
     return logPatternConsole;
   }

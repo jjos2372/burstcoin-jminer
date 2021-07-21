@@ -97,6 +97,7 @@ public class Round
 
   private long networkSuccessCount;
   private long networkFailCount;
+  private Boolean lastNetworkStatusConnected;
 
   @Autowired
   public Round(Reader reader, Checker checker, Network network, ApplicationEventPublisher publisher)
@@ -290,10 +291,21 @@ public class Round
     if(event.isSuccess())
     {
       networkSuccessCount++;
+      if(lastNetworkStatusConnected != null && lastNetworkStatusConnected != true) {
+        LOG.info("server {} outage resolved", CoreProperties.getServer());
+      }
+      lastNetworkStatusConnected = true;
     }
     else
     {
       networkFailCount++;
+      if(lastNetworkStatusConnected != null && lastNetworkStatusConnected != false) {
+        LOG.error("server {} connection outage...", CoreProperties.getServer());
+      }
+      if(lastNetworkStatusConnected == null) {
+        LOG.error("connectivity issues with {}", CoreProperties.getServer());
+      }
+      lastNetworkStatusConnected = false;
     }
   }
 

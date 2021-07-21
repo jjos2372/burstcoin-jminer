@@ -75,13 +75,12 @@ public class NetworkRequestMiningInfoTask
     this.publisher = publisher;
   }
 
-  public void init(String server, long blockNumber, byte[] generationSignature, int numberOfScoopsPerBlock, long plotSizeInByte)
+  public void init(String server, long blockNumber, byte[] generationSignature, int numberOfScoopsPerBlock)
   {
     this.server = server;
     this.generationSignature = generationSignature;
     this.numberOfScoopsPerBlock = numberOfScoopsPerBlock;
     this.blockNumber = blockNumber;
-    this.plotSizeInByte = plotSizeInByte;
 
     success = false;
   }
@@ -122,7 +121,9 @@ public class NetworkRequestMiningInfoTask
         if(!Arrays.equals(newGenerationSignature, generationSignature))
         {
           long baseTarget = Long.parseUnsignedLong(result.getBaseTarget());
-          long targetDeadline = getTargetDeadline(result.getTargetDeadline(), baseTarget);
+          long targetDeadline = CoreProperties.getTargetDeadline();
+          if(result.getTargetDeadline() != null)
+            targetDeadline = getTargetDeadline(result.getTargetDeadline(), baseTarget);
           publisher.publishEvent(new NetworkStateChangeEvent(newBlockNumber, baseTarget, newGenerationSignature, numberOfScoopsPerBlock, targetDeadline));
         }
         else
@@ -137,7 +138,7 @@ public class NetworkRequestMiningInfoTask
     }
     catch(TimeoutException timeoutException)
     {
-      LOG.debug("Unable to get mining info from wallet, caused by connectionTimeout, currently '"
+      LOG.debug("Unable to get mining info, caused by connectionTimeout, currently '"
                 + (CoreProperties.getConnectionTimeout() / 1000) + " sec.' try increasing it!");
     }
     catch(Exception e)

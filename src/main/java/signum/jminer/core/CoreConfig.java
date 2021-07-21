@@ -61,7 +61,7 @@ public class CoreConfig
   public HttpClient httpClient()
   {
     SslContextFactory sslContextFactory = new SslContextFactory.Client();
-    sslContextFactory.setEndpointIdentificationAlgorithm("none");
+//    sslContextFactory.setEndpointIdentificationAlgorithm("none");
 
     HttpClient client = new HttpClient(sslContextFactory);
     try
