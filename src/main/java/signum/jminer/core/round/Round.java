@@ -25,6 +25,7 @@ package signum.jminer.core.round;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Timer;
@@ -81,12 +82,11 @@ public class Round
   private long baseTarget;
   private Date roundStartDate;
 
-  private BigInteger lowestHit;
-  private long bestConfirmedDeadline;
+  private HashMap<String, BigInteger> lowestHitMap = new HashMap<>();
 
   // cache for next lowest
   private int deadlineRetryCounter;
-  private BigInteger lowestConfirmed;
+  private HashMap<String, BigInteger> lowestConfirmedMap = new HashMap<>();
 
   private Set<BigInteger> runningChunkPartStartNonces;
   private Plots plots;
@@ -121,10 +121,9 @@ public class Round
     networkSuccessCount = 0;
     runningChunkPartStartNonces = new HashSet<>(plots.getChunkPartStartNonces().keySet());
     roundStartDate = new Date();
-    lowestHit = BigInteger.valueOf(Long.MAX_VALUE);
-    lowestConfirmed = BigInteger.valueOf(Long.MAX_VALUE);
+    lowestHitMap.clear();
+    lowestConfirmedMap.clear();
     deadlineRetryCounter = 0;
-    bestConfirmedDeadline = Long.MAX_VALUE;
   }
 
   @EventListener
@@ -166,8 +165,6 @@ public class Round
         Round.this.baseTarget = event.getBaseTarget();
         Round.this.targetDeadline = event.getTargetDeadline();
 
-        long lastBestConfirmedDeadline = bestConfirmedDeadline;
-
         plots = reader.getPlots();
         int networkQuality = getNetworkQuality();
         initNewRound(plots);
@@ -189,7 +186,7 @@ public class Round
         }
         
         // start reader
-        reader.read(previousBlockNumber, blockNumber, generationSignature, scoopArray, lastBestConfirmedDeadline, networkQuality);
+        reader.read(previousBlockNumber, blockNumber, generationSignature, scoopArray, networkQuality);
 
         // ui event
         publisher.publishEvent(new RoundStartedEvent(restart, blockNumber, scoopArray, plots.getSize(), targetDeadline, baseTarget, generationSignature));
@@ -213,7 +210,8 @@ public class Round
       BigInteger deadline = hit.divide(BigInteger.valueOf(baseTarget));
       long calculatedDeadline = deadline.longValue();
       
-      if(hit.compareTo(lowestHit) > 0) {
+      BigInteger lowestHit = lowestHitMap.get(event.getPlotFile().getAccountID());
+      if(lowestHit != null && hit.compareTo(lowestHit) > 0) {
         // ui event
         if(CoreProperties.isShowSkippedDeadlines()) {
           publisher.publishEvent(new RoundSingleResultSkippedEvent(event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline,
@@ -226,7 +224,7 @@ public class Round
         return;
       }
 
-      lowestHit = hit;
+      lowestHitMap.put(event.getPlotFile().getAccountID(), hit);
       if(calculatedDeadline < targetDeadline) {
         int[] scoopArray = event.getScoopArray();
         BigInteger numberOfScoops = BigInteger.valueOf(scoopArray.length);
@@ -249,17 +247,14 @@ public class Round
   {
     if(isCurrentRound(event.getBlockNumber(), event.getGenerationSignature()))
     {
+      BigInteger lowestConfirmed = lowestConfirmedMap.get(event.getAccountID());
       // if result if lower than lowestCommitted, update lowestCommitted
-      if(event.getResult() != null && event.getResult().compareTo(lowestConfirmed) < 0) {
-        lowestConfirmed = event.getResult();
+      if(lowestConfirmed == null || (event.getResult() != null && event.getResult().compareTo(lowestConfirmed) < 0)) {
+        lowestConfirmedMap.put(event.getAccountID(), event.getResult());
       }
 
       runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
 
-      if(bestConfirmedDeadline > event.getDeadline())
-      {
-        bestConfirmedDeadline = event.getDeadline();
-      }
       triggerFinishRoundEvent(event.getBlockNumber());
     }
   }
@@ -268,7 +263,10 @@ public class Round
   public void handleMessage(NetworkResultErrorEvent event)
   {
     if(isCurrentRound(event.getBlockNumber(), event.getGenerationSignature())) {
-      if(event.getResult()!=null && event.getResult().compareTo(lowestConfirmed) < 0 && event.getStrangeDeadline() >= 0) {
+      
+      BigInteger lowestConfirmed = lowestConfirmedMap.get(event.getTask().getAcountID());
+      
+      if(event.getStrangeDeadline() >= 0 && (lowestConfirmed == null || event.getResult()!=null && event.getResult().compareTo(lowestConfirmed) < 0)) {
         // we need to send again this one since it was not delivered
         deadlineRetryCounter++;
         if(deadlineRetryCounter < CoreProperties.getDeadlineRetryLimit()) {

@@ -110,7 +110,7 @@ public class Reader
   }
 
   /* starts reader (once per block) */
-  public void read(long previousBlockNumber, long blockNumber, byte[] generationSignature, int[] scoopArray, long lastBestCommittedDeadline, int networkQuality)
+  public void read(long previousBlockNumber, long blockNumber, byte[] generationSignature, int[] scoopArray, int networkQuality)
   {
     Reader.blockNumber.set(blockNumber);
     Reader.generationSignature = generationSignature;
@@ -121,7 +121,7 @@ public class Reader
     if(readerPool.getActiveCount() > 0)
     {
       long elapsedTime = new Date().getTime() - readerStartTime;
-      context.publishEvent(new RoundStoppedEvent(previousBlockNumber, lastBestCommittedDeadline, capacity, remainingCapacity, elapsedTime, networkQuality));
+      context.publishEvent(new RoundStoppedEvent(previousBlockNumber, capacity, remainingCapacity, elapsedTime, networkQuality));
     }
 
     // update reader thread count

@@ -107,7 +107,7 @@ public class JMinerCommandLine
         long s = event.getRoundTime() / 1000;
         long ms = event.getRoundTime() % 1000;
         
-        float speed = event.getCapacity()* 1000 / (event.getRoundTime() * MiningPlot.SCOOPS_PER_PLOT * 1024*1024);
+        float speed = event.getCapacity() * 1000 / (event.getRoundTime() * MiningPlot.SCOOPS_PER_PLOT * 1024*1024);
 
         LOG.info("round {} finished, network quality {} %, time {} s {} ms, {} MiB/s", event.getBlockNumber(),
             event.getNetworkQuality(), s, ms, speed);
@@ -133,9 +133,7 @@ public class JMinerCommandLine
         int percentage = (int) Math.ceil(progress.doubleValue() * 100);
         percentage = percentage > 100 ? 100 : percentage;
 
-        String bestDeadline = Long.MAX_VALUE == event.getBestCommittedDeadline() ? "N/A" : String.valueOf(event.getBestCommittedDeadline());
         LOG.info("STOP block '" + event.getBlockNumber() + "', " + String.valueOf(percentage) + "% done, "
-                 + "best deadline '" + bestDeadline + "', "
                  + "net '" + event.getNetworkQuality() + "%', "
                  + "time '" + s + "s " + ms + "ms'");
 
@@ -266,7 +264,8 @@ public class JMinerCommandLine
       @Override
       public void onApplicationEvent(NetworkResultErrorEvent event)
       {
-        LOG.info("dl '" + event.getCalculatedDeadline() + "' NOT confirmed!  [ " + getDeadlineTime(event.getCalculatedDeadline()) + " ]");
+        LOG.info("deadline rejected: account={}, nonce={}, deadline={}, returned deadline={}",
+            event.getTask().getAcountID(), event.getNonce(), event.getCalculatedDeadline(), event.getStrangeDeadline());
         LOG.debug("strange dl result '" + event.getStrangeDeadline() + "', "
                   + "calculated '" + (event.getCalculatedDeadline() > 0 ? event.getCalculatedDeadline() : "N/A") + "' "
                   + "block '" + event.getBlockNumber() + "' nonce '" + event.getNonce() + "'");
@@ -322,17 +321,5 @@ public class JMinerCommandLine
     {
       LOG.info("More than 50% of 'mining info' requests failed, please set 'debug=true' for detailed info.");
     }
-  }
-
-  private String getDeadlineTime(Long calculatedDeadline)
-  {
-    long sec = calculatedDeadline;
-    long min = sec / 60;
-    sec = sec % 60;
-    long hours = min / 60;
-    min = min % 60;
-    long days = hours / 24;
-    hours = hours % 24;
-    return days + "d " + hours + "h " + min + "m " + sec + "s";
   }
 }

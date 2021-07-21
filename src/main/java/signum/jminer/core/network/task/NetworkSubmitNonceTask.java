@@ -101,6 +101,10 @@ public class NetworkSubmitNonceTask
     this.plotFile = plotFile;
     this.mac = mac;
   }
+  
+  public String getAcountID() {
+    return accountID;
+  }
 
   @Override
   public void run()

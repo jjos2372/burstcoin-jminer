@@ -32,19 +32,17 @@ public class RoundStoppedEvent
   extends ApplicationEvent
 {
   private long blockNumber;
-  private long bestCommittedDeadline;
 
   private long capacity;
   private long remainingCapacity;
   private long elapsedTime;
   private int networkQuality;
 
-  public RoundStoppedEvent(long blockNumber, long bestCommittedDeadline, long capacity, long remainingCapacity, long elapsedTime, int networkQuality)
+  public RoundStoppedEvent(long blockNumber, long capacity, long remainingCapacity, long elapsedTime, int networkQuality)
   {
     super(blockNumber);
 
     this.blockNumber = blockNumber;
-    this.bestCommittedDeadline = bestCommittedDeadline;
     this.capacity = capacity;
     this.remainingCapacity = remainingCapacity;
     this.elapsedTime = elapsedTime;
@@ -54,11 +52,6 @@ public class RoundStoppedEvent
   public long getBlockNumber()
   {
     return blockNumber;
-  }
-
-  public long getBestCommittedDeadline()
-  {
-    return bestCommittedDeadline;
   }
 
   public long getCapacity()
