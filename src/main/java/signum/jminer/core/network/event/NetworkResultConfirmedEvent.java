@@ -38,6 +38,7 @@ public class NetworkResultConfirmedEvent
   private byte[] generationSignature;
   private long deadline;
   private BigInteger nonce;
+  private String accountID;
 
   private BigInteger chunkPartStartNonce;
   private BigInteger result;
@@ -50,7 +51,7 @@ public class NetworkResultConfirmedEvent
    * @param nonce the nonce
    * @param chunkPartStartNonce the chunk part start nonce
    */
-  public NetworkResultConfirmedEvent(long blockNumber, byte[] generationSignature, long deadline, BigInteger nonce, BigInteger chunkPartStartNonce, BigInteger result)
+  public NetworkResultConfirmedEvent(long blockNumber, byte[] generationSignature, long deadline, String accountID, BigInteger nonce, BigInteger chunkPartStartNonce, BigInteger result)
   {
     super(blockNumber);
 
@@ -58,6 +59,7 @@ public class NetworkResultConfirmedEvent
     this.generationSignature = generationSignature;
     this.deadline = deadline;
     this.nonce = nonce;
+    this.accountID = accountID;
 
     this.chunkPartStartNonce = chunkPartStartNonce;
     this.result = result;
@@ -106,6 +108,11 @@ public class NetworkResultConfirmedEvent
   public BigInteger getResult()
   {
     return result;
+  }
+  
+  public String getAccountID()
+  {
+    return accountID;
   }
 
   public byte[] getGenerationSignature()

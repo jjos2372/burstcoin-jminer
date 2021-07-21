@@ -28,6 +28,8 @@ import signum.jminer.core.network.event.NetworkResultConfirmedEvent;
 import signum.jminer.core.network.event.NetworkResultErrorEvent;
 import signum.jminer.core.network.model.ResponseError;
 import signum.jminer.core.network.model.SubmitResult;
+import signum.jminer.core.reader.data.PlotFile;
+
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jetty.client.HttpClient;
@@ -73,7 +75,7 @@ public class NetworkSubmitNonceTask
   private long calculatedDeadline;
   private long totalCapacity;
   private BigInteger result;
-  private String plotFilePath;
+  private PlotFile plotFile;
   private String mac;
 
   @Autowired
@@ -85,7 +87,7 @@ public class NetworkSubmitNonceTask
   }
 
   public void init(long blockNumber, byte[] generationSignature, String accountID, BigInteger nonce, int scoopNumber, BigInteger chunkPartStartNonce, long calculatedDeadline, long totalCapacity,
-                   BigInteger result, String plotFilePath, String mac)
+                   BigInteger result, PlotFile plotFile, String mac)
   {
     this.generationSignature = generationSignature;
     this.accountID = accountID;
@@ -96,7 +98,7 @@ public class NetworkSubmitNonceTask
     this.calculatedDeadline = calculatedDeadline;
     this.totalCapacity = totalCapacity;
     this.result = result;
-    this.plotFilePath = plotFilePath;
+    this.plotFile = plotFile;
     this.mac = mac;
   }
 
@@ -122,7 +124,7 @@ public class NetworkSubmitNonceTask
         // thanks @systemofapwne
         .header("X-PlotsHash", StringUtils.hasText(mac) ? String.valueOf(gb) : mac) //For CreepMiner: Unique id for system
         .header("X-Deadline", String.valueOf(calculatedDeadline)) //For CreepMiner proxy: Numerical value of this deadline
-        .header("X-Plotfile", plotFilePath) //For CreepMiner proxy: Plotfile this deadline origins from
+        .header("X-Plotfile", plotFile.getFilePath().toString()) //For CreepMiner proxy: Plotfile this deadline origins from
 
         .timeout(CoreProperties.getConnectionTimeout(), TimeUnit.MILLISECONDS);
       
@@ -151,7 +153,7 @@ public class NetworkSubmitNonceTask
         {
           if(calculatedDeadline == result.getDeadline())
           {
-            publisher.publishEvent(new NetworkResultConfirmedEvent(blockNumber, generationSignature, result.getDeadline(), nonce, chunkPartStartNonce,
+            publisher.publishEvent(new NetworkResultConfirmedEvent(blockNumber, generationSignature, result.getDeadline(), plotFile.getAccountID(), nonce, chunkPartStartNonce,
                                                                    this.result));
           }
           else

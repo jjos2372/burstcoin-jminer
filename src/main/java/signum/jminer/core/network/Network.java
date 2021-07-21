@@ -116,7 +116,7 @@ public class Network
   private void checkNetworkState()
   {
     String server = CoreProperties.getServer();
-    if(!StringUtils.hasText(server))
+    if(StringUtils.hasText(server))
     {
       NetworkRequestMiningInfoTask networkRequestMiningInfoTask = context.getBean(NetworkRequestMiningInfoTask.class);
       networkRequestMiningInfoTask.init(server, blockNumber, generationSignature, numberOfScoopsPerBlock, plots.getSize());
@@ -129,7 +129,7 @@ public class Network
   {
     NetworkSubmitNonceTask networkSubmitPoolNonceTask = context.getBean(NetworkSubmitNonceTask.class);
     networkSubmitPoolNonceTask.init(blockNumber, generationSignature, plotFile.getAccountID(), nonce, scoopNumber, chunkPartStartNonce, calculatedDeadline,
-        totalCapacity, result, plotFile.getFilePath().toString(), mac);
+        totalCapacity, result, plotFile, mac);
     submitResult(networkSubmitPoolNonceTask);
   }
 

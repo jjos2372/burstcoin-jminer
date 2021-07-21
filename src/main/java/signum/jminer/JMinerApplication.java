@@ -22,9 +22,9 @@
 
 package signum.jminer;
 
-import signum.jminer.core.CoreProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.boot.Banner;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -32,25 +32,15 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 
-import java.util.HashMap;
-import java.util.Map;
+import signum.jminer.core.CoreProperties;
 
 @SpringBootApplication
 public class JMinerApplication
 {
-  private static final Logger LOG = LoggerFactory.getLogger(JMinerApplication.class);
-
-  static
-  {
-    String version = System.getProperty("java.version");
-    int pos = version.indexOf('.');
-    pos = version.indexOf('.', pos + 1);
-  }
-
   public static void main(String[] args)
-  {
-    // inform users with java9, that jminer will not function with it.
-    LOG.info("Starting the engines ... please wait!");
+  {    
+    // TODO: config file by argument
+    CoreProperties.init("jminer.properties");
 
     // overwritten by application.properties
     Map<String, Object> properties = new HashMap<>();
@@ -67,7 +57,7 @@ public class JMinerApplication
     {
       properties.put("logging.pattern.file", CoreProperties.getLogPatternFile());
     }
-
+    
     new SpringApplicationBuilder(JMinerApplication.class)
     .bannerMode(Banner.Mode.OFF) // turn off spring boot banner
     .logStartupInfo(false)

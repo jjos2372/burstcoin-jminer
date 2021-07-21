@@ -53,21 +53,21 @@ public class CoreProperties
   private static final int DEFAULT_CONNECTION_TIMEOUT = 18000;
   private static final int DEFAULT_DEADLINE_RETRY_LIMIT = 4;
   private static final boolean DEFAULT_SCAN_PATHS_EVERY_ROUND = true;
-  private static final boolean DEFAULT_BYTE_UNIT_DECIMAL = true;
+  private static final boolean DEFAULT_BYTE_UNIT_DECIMAL = false;
   private static final boolean DEFAULT_LIST_PLOT_FILES = false;
   private static final boolean DEFAULT_SHOW_DRIVE_INFO = false;
-  private static final boolean DEFAULT_SHOW_SKIPPED_DEADLINES = true;
+  private static final boolean DEFAULT_SHOW_SKIPPED_DEADLINES = false;
   private static final int DEFAULT_READER_THREADS = 0;
   private static final boolean DEFAULT_DEBUG = false;
   private static final boolean DEFAULT_WRITE_LOG_FILE = false;
   private static final boolean DEFAULT_UPDATE_MINING_INFO = true;
   private static final String DEFAULT_LOG_FILE_PATH = "log/jminer.log.txt";
 
-  static
+  public static void init(String propertiesFile)
   {
     try
     {
-      PROPS.load(new FileInputStream(System.getProperty("user.dir") + "/jminer.properties"));
+      PROPS.load(new FileInputStream(propertiesFile));
     }
     catch(IOException e)
     {
@@ -421,7 +421,7 @@ public class CoreProperties
   {
     if(logPatternConsole == null)
     {
-      logPatternConsole = asString("logPatternConsole", null);
+      logPatternConsole = asString("logPatternConsole", "%-5level%d{HH:mm:ss} | %msg%n");
     }
     return logPatternConsole;
   }
@@ -439,7 +439,7 @@ public class CoreProperties
   {
     String booleanProperty = PROPS.containsKey(key) ? String.valueOf(PROPS.getProperty(key)) : null;
     Boolean value = null;
-    if(!StringUtils.hasText(booleanProperty))
+    if(StringUtils.hasText(booleanProperty))
     {
       try
       {
@@ -457,7 +457,7 @@ public class CoreProperties
   {
     String integerProperty = PROPS.containsKey(key) ? String.valueOf(PROPS.getProperty(key)) : null;
     Integer value = null;
-    if(!StringUtils.hasText(integerProperty))
+    if(StringUtils.hasText(integerProperty))
     {
       try
       {
@@ -475,7 +475,7 @@ public class CoreProperties
   {
     String integerProperty = PROPS.containsKey(key) ? String.valueOf(PROPS.getProperty(key)) : null;
     Long value = null;
-    if(!StringUtils.hasText(integerProperty))
+    if(StringUtils.hasText(integerProperty))
     {
       try
       {
@@ -493,7 +493,7 @@ public class CoreProperties
   {
     String stringListProperty = PROPS.containsKey(key) ? String.valueOf(PROPS.getProperty(key)) : null;
     List<String> value = null;
-    if(!StringUtils.hasText(stringListProperty))
+    if(StringUtils.hasText(stringListProperty))
     {
       try
       {
@@ -511,6 +511,6 @@ public class CoreProperties
   private static String asString(String key, String defaultValue)
   {
     String value = PROPS.containsKey(key) ? String.valueOf(PROPS.getProperty(key)) : defaultValue;
-    return StringUtils.hasText(value) ? defaultValue : value;
+    return !StringUtils.hasText(value) ? defaultValue : value;
   }
 }

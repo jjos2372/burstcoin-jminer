@@ -39,6 +39,7 @@ import signum.jminer.core.round.event.RoundSingleResultSkippedEvent;
 import signum.jminer.core.round.event.RoundStartedEvent;
 import signum.jminer.core.round.event.RoundStoppedEvent;
 import signumj.crypto.SignumCrypto;
+import signumj.crypto.plot.impl.MiningPlot;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +50,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.Arrays;
+import java.util.Properties;
 
 
 public class JMinerCommandLine
@@ -79,17 +81,13 @@ public class JMinerCommandLine
     throws Exception
   {
     initApplicationListeners();
+    
+    Properties versionProp = new Properties();
+    versionProp.load(JMinerCommandLine.class.getResourceAsStream("/version.properties"));
+    String version = versionProp.getProperty("version");
 
-    LOG.info("-------------------------------------------------------");
-    LOG.info("                            Burstcoin (BURST)");
-    LOG.info("            __         __   GPU assisted PoC-Miner");
-    LOG.info("           |__| _____ |__| ____   ___________ ");
-    LOG.info("   version |  |/     \\|  |/    \\_/ __ \\_  __ \\");
-    LOG.info("     0.6.0 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
-    LOG.info("       /\\__|  |__|_|  /__|___|  /\\___  >__| ");
-    LOG.info("       \\______|     \\/        \\/     \\/");
-    LOG.info("      mining engine: BURST-LUXE-RED2-G6JW-H4HG5");
-    LOG.info("     openCL checker: BURST-QHCJ-9HB5-PTGC-5Q8J9");
+    LOG.info("signum-jminer {} started", version);
+    LOG.info("source code available at https://github.com/signum-network");
 
     // start mining
     Network network = context.getBean(Network.class);
@@ -108,12 +106,11 @@ public class JMinerCommandLine
 
         long s = event.getRoundTime() / 1000;
         long ms = event.getRoundTime() % 1000;
+        
+        float speed = event.getCapacity()* 1000 / (event.getRoundTime() * MiningPlot.SCOOPS_PER_PLOT * 1024*1024);
 
-        String bestDeadline = Long.MAX_VALUE == event.getBestCommittedDeadline() ? "N/A" : String.valueOf(event.getBestCommittedDeadline());
-        LOG.info("FINISH block '" + event.getBlockNumber() + "', "
-                 + "best deadline '" + bestDeadline + "', "
-                 + "net '" + event.getNetworkQuality() + "%', "
-                 + "time '" + s + "s " + ms + "ms'");
+        LOG.info("round {} finished, network quality {} %, time {} s {} ms, {} MiB/s", event.getBlockNumber(),
+            event.getNetworkQuality(), s, ms, speed);
 
         showNetworkQualityInfo(event.getNetworkQuality());
       }
@@ -240,10 +237,9 @@ public class JMinerCommandLine
     context.addApplicationListener(new ApplicationListener<RoundSingleResultEvent>()
     {
       @Override
-      public void onApplicationEvent(RoundSingleResultEvent event)
-      {
-        LOG.info(
-          "dl '" + event.getCalculatedDeadline() + "' send [nonce '" + event.getNonce().toString() + "']");
+      public void onApplicationEvent(RoundSingleResultEvent event) {
+        LOG.info("deadline sent: account={}, nonce={}, deadline={}", event.getCheckerResultEvent().getPlotFile().getAccountID(),
+            event.getNonce(), event.getCalculatedDeadline());
       }
     });
 
@@ -261,7 +257,7 @@ public class JMinerCommandLine
       @Override
       public void onApplicationEvent(NetworkResultConfirmedEvent event)
       {
-        LOG.info("dl '" + event.getDeadline() + "' confirmed!  [ " + getDeadlineTime(event.getDeadline()) + " ]");
+        LOG.info("deadline accepted: account={}, nonce={}, deadline={}", event.getAccountID(), event.getNonce(), event.getDeadline());
       }
     });
 

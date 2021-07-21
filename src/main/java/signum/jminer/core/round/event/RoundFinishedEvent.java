@@ -32,17 +32,17 @@ public class RoundFinishedEvent
   extends ApplicationEvent
 {
   private long blockNumber;
-  private long bestCommittedDeadline;
   private long roundTime;
 
   private int networkQuality;
+  private long capacity;
 
-  public RoundFinishedEvent(long blockNumber, long bestCommittedDeadline, long roundTime, int networkQuality)
+  public RoundFinishedEvent(long blockNumber, long roundTime, int networkQuality, long capacity)
   {
     super(blockNumber);
     this.blockNumber = blockNumber;
-    this.bestCommittedDeadline = bestCommittedDeadline;
     this.roundTime = roundTime;
+    this.capacity = capacity;
     this.networkQuality = networkQuality;
   }
 
@@ -51,14 +51,14 @@ public class RoundFinishedEvent
     return blockNumber;
   }
 
-  public long getBestCommittedDeadline()
-  {
-    return bestCommittedDeadline;
-  }
-
   public long getRoundTime()
   {
     return roundTime;
+  }
+  
+  public long getCapacity()
+  {
+    return capacity;
   }
 
   public int getNetworkQuality()

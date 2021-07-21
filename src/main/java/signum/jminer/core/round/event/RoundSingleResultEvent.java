@@ -24,6 +24,8 @@ package signum.jminer.core.round.event;
 
 import org.springframework.context.ApplicationEvent;
 
+import signum.jminer.core.checker.event.CheckerResultEvent;
+
 import java.math.BigInteger;
 
 /**
@@ -35,9 +37,9 @@ public class RoundSingleResultEvent
 {
   private long blockNumber;
   private BigInteger nonce;
-  private BigInteger chunkPartStartNonce;
 
   private long calculatedDeadline;
+  private CheckerResultEvent event;
 
   /**
    * Instantiates a new Round single result event.
@@ -48,13 +50,12 @@ public class RoundSingleResultEvent
    * @param calculatedDeadline the calculated deadline
    * @param poolMining the pool mining
    */
-  public RoundSingleResultEvent(long blockNumber, BigInteger nonce, BigInteger chunkPartStartNonce, long calculatedDeadline)
+  public RoundSingleResultEvent(CheckerResultEvent event, BigInteger nonce, long calculatedDeadline)
   {
-    super(blockNumber);
+    super(event.getBlockNumber());
 
+    this.event = event;
     this.nonce = nonce;
-    this.blockNumber = blockNumber;
-    this.chunkPartStartNonce = chunkPartStartNonce;
     this.calculatedDeadline = calculatedDeadline;
   }
 
@@ -79,13 +80,11 @@ public class RoundSingleResultEvent
   }
 
   /**
-   * Gets chunk part start nonce.
-   *
-   * @return the chunk part start nonce
+   * @return the original event
    */
-  public BigInteger getChunkPartStartNonce()
+  public CheckerResultEvent getCheckerResultEvent()
   {
-    return chunkPartStartNonce;
+    return event;
   }
 
   /**

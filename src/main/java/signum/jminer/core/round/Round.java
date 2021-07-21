@@ -22,9 +22,7 @@
 
 package signum.jminer.core.round;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.math.MathContext;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -241,7 +239,7 @@ public class Round
             hit, event.getPlotFile());
 
         // ui event
-        publisher.publishEvent(new RoundSingleResultEvent(event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline));
+        publisher.publishEvent(new RoundSingleResultEvent(event, nonce, calculatedDeadline));
       }        
     }
   }
@@ -326,7 +324,7 @@ public class Round
       @Override
       public void run()
       {
-        publisher.publishEvent(new RoundFinishedEvent(blockNumber, bestConfirmedDeadline, elapsedRoundTime, networkQuality));
+        publisher.publishEvent(new RoundFinishedEvent(blockNumber, elapsedRoundTime, networkQuality, plots.getSize()));
       }
     }, 250); // fire deferred
 
@@ -335,10 +333,9 @@ public class Round
 
   private int getNetworkQuality()
   {
-    BigDecimal factor = BigDecimal.ONE.divide(new BigDecimal(networkSuccessCount + networkFailCount + 1), MathContext.DECIMAL32);
-    BigDecimal progress = factor.multiply(new BigDecimal(networkSuccessCount + 1));
-    int percentage = (int) Math.ceil(progress.doubleValue() * 100);
-    return percentage > 100 ? 100 : percentage;
+    double quality = 1.0 - (double)networkFailCount/(networkSuccessCount + 1.0);
+    int percentage = (int)(quality) * 100;
+    return percentage;
   }
 
   private void triggerCleanup()
