@@ -143,8 +143,9 @@ public class ReaderLoadDriveTask
     RandomAccessFile ra;
     
     public RandomAccessFileWrapper(Path path) throws IOException {
-      if(Platform.isLinux())
-        dra = new DirectRandomAccessFile(path.toFile(), "r"); // , MiningPlot.PLOT_SIZE/4);
+      // ARM has no O_DIRECT support implemented yet
+      if(Platform.isLinux() && !Platform.isARM())
+        dra = new DirectRandomAccessFile(path.toFile(), "r");
       else
         ra = new RandomAccessFile(path.toFile(), "r");
     }
