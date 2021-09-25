@@ -82,6 +82,7 @@ public class PlotFile
       this.numberOfParts = calculateNumberOfParts(staggeramt);
       this.numberOfChunks = 1;
     }
+    this.numberOfParts = 1;
 
     chunkPartStartNonces = new HashMap<>();
 

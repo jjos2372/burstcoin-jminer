@@ -53,7 +53,10 @@ import signum.jminer.core.reader.event.ReaderDriveFinishEvent;
 import signum.jminer.core.reader.event.ReaderDriveInterruptedEvent;
 import signum.jminer.core.reader.event.ReaderLoadedPartEvent;
 import net.smacke.jaydio.DirectRandomAccessFile;
-import signumj.crypto.plot.impl.MiningPlot;
+import static signumj.crypto.plot.impl.MiningPlot.SCOOP_SIZE;
+import static signumj.crypto.plot.impl.MiningPlot.PLOT_SIZE;
+import static signumj.crypto.plot.impl.MiningPlot.SCOOPS_PER_PLOT;
+import static signumj.crypto.plot.impl.MiningPlot.SCOOPS_PER_PLOT_BIGINT;
 
 
 /**
@@ -143,7 +146,7 @@ public class ReaderLoadDriveTask
     RandomAccessFile ra;
     
     public RandomAccessFileWrapper(Path path) throws IOException {
-      // ARM has no O_DIRECT support implemented yet
+      // TODO: ARM has a different O_DIRECT hint, needs to be adjusted
       if(Platform.isLinux() && !Platform.isARM())
         dra = new DirectRandomAccessFile(path.toFile(), "r");
       else
@@ -176,7 +179,7 @@ public class ReaderLoadDriveTask
   private boolean load(PlotFile plotFile) {
     try (RandomAccessFileWrapper sbc = new RandomAccessFileWrapper(plotFile.getFilePath())) {
       int partSizeNonces = (int)(plotFile.getStaggeramt() / plotFile.getNumberOfParts());
-      byte []partBuffer = new byte[partSizeNonces * MiningPlot.SCOOP_SIZE];
+      byte []partBuffer = new byte[partSizeNonces * SCOOP_SIZE];
 
       for(int partNumber = 0; partNumber < plotFile.getNumberOfParts(); partNumber++) {
         for (int scoopNumberPosition = 0; scoopNumberPosition < scoopArray.length; scoopNumberPosition++) {
@@ -222,26 +225,33 @@ public class ReaderLoadDriveTask
   
   public static void readPart(PlotFile plotFile, RandomAccessFileWrapper sbc, int partSizeNonces,
       byte []partBuffer, int partNumber, int scoopNumberPosition, int[] scoopArray) throws IOException {
-    int noncesToSwitchScoop = MiningPlot.SCOOPS_PER_PLOT/scoopArray.length;
-    int bytesToSwitchScoop = MiningPlot.PLOT_SIZE/scoopArray.length;
+    int noncesToSwitchScoop = SCOOPS_PER_PLOT/scoopArray.length;
+    int bytesToSwitchScoop = PLOT_SIZE/scoopArray.length;
 
     BigInteger startNonce = plotFile.getStartnonce().add(BigInteger.valueOf(partNumber * partSizeNonces));
 
-    int scoopAlignmetOffset = startNonce.add(BigInteger.valueOf(scoopArray[0])).mod(MiningPlot.SCOOPS_PER_PLOT_BIGINT).intValue();
-    if(scoopAlignmetOffset != 0) {
-      scoopAlignmetOffset = MiningPlot.SCOOPS_PER_PLOT - scoopAlignmetOffset;
-    }
-    int startOffsetNonces = scoopAlignmetOffset + noncesToSwitchScoop * scoopNumberPosition;
+    int scoopAlignmetOffset = SCOOPS_PER_PLOT_BIGINT.subtract(
+        startNonce.add(BigInteger.valueOf(scoopArray[0])).mod(SCOOPS_PER_PLOT_BIGINT)).intValue();
+    
+    int startOffsetNonces = (scoopAlignmetOffset + noncesToSwitchScoop * scoopNumberPosition) % SCOOPS_PER_PLOT;
     if(scoopArray.length == 1) {
       // single scoop, so we can speed things up
       startOffsetNonces = 0;
       bytesToSwitchScoop = partBuffer.length;
     }
+    else if(startOffsetNonces > SCOOPS_PER_PLOT - noncesToSwitchScoop) {
+      // this scoop number has a section on the beginning of the file, so we read it first
+      int noncesToReadOnStart = startOffsetNonces - (SCOOPS_PER_PLOT - noncesToSwitchScoop);
+      int bytesToReadOnStart = noncesToReadOnStart * SCOOP_SIZE;
+
+      sbc.seek((partSizeNonces*partNumber + scoopArray[scoopNumberPosition] * plotFile.getStaggeramt()) * SCOOP_SIZE);
+      sbc.read(partBuffer, 0, bytesToReadOnStart);
+    }
 
     startOffsetNonces += partSizeNonces*partNumber;
-    int startOffsetBytes = startOffsetNonces * MiningPlot.SCOOP_SIZE;
+    int startOffsetBytes = startOffsetNonces * SCOOP_SIZE;
 
-    long filePositionBytes = startOffsetBytes + scoopArray[scoopNumberPosition] * plotFile.getStaggeramt() * MiningPlot.SCOOP_SIZE;
+    long filePositionBytes = startOffsetBytes + scoopArray[scoopNumberPosition] * plotFile.getStaggeramt() * SCOOP_SIZE;
 
     while(startOffsetBytes < partBuffer.length) {
       sbc.seek(filePositionBytes);
@@ -253,18 +263,8 @@ public class ReaderLoadDriveTask
         break;
       }
 
-      if(bytesToRead < bytesToSwitchScoop) {
-        // this scoop number has the remaining bytes on the beginning of the file, lets read it now
-        int bytesToReadOnStart = bytesToSwitchScoop - bytesToRead;
-
-        filePositionBytes = startOffsetNonces * MiningPlot.SCOOP_SIZE
-            + scoopArray[scoopNumberPosition] * plotFile.getStaggeramt() * MiningPlot.SCOOP_SIZE;
-        sbc.seek(filePositionBytes);
-        sbc.read(partBuffer, 0, bytesToReadOnStart);
-      }
-
-      startOffsetBytes += MiningPlot.PLOT_SIZE;
-      filePositionBytes += MiningPlot.PLOT_SIZE;
+      startOffsetBytes += PLOT_SIZE;
+      filePositionBytes += PLOT_SIZE;
     }
   }
 

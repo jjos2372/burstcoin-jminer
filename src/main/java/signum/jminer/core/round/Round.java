@@ -183,7 +183,7 @@ public class Round
         SignumCrypto crypto = SignumCrypto.getInstance();
         scoopArray[0] = crypto.calculateScoop(event.getGenerationSignature(), event.getBlockNumber());
         for (int i = 1; i < N; i++) {
-          scoopArray[i] = crypto.calculateScoop(crypto.longToBytesBE(scoopArray[i-1]), event.getBlockNumber());
+          scoopArray[i] = crypto.calculateScoop(event.getGenerationSignature(), scoopArray[i-1]);
         }
         
         // start reader
